@@ -6,19 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>587</width>
-    <height>488</height>
+    <width>628</width>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QWidget" name="plotWindow2" native="true">
-     <layout class="QVBoxLayout" name="plotLayout2"/>
-    </widget>
-   </item>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QWidget" name="plotWindow" native="true">
      <layout class="QVBoxLayout" name="plotLayout"/>
@@ -27,7 +22,19 @@
    <item>
     <widget class="QPushButton" name="pushButton">
      <property name="text">
-      <string>PushButton</string>
+      <string>Выбор данных ( без шума )</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="plotWindow2" native="true">
+     <layout class="QVBoxLayout" name="plotLayout2"/>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="text">
+      <string>Выбор данных ( с шумом )</string>
      </property>
     </widget>
    </item>
