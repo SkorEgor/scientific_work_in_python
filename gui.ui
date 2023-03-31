@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>628</width>
-    <height>511</height>
+    <width>810</width>
+    <height>572</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,7 +52,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,0,0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,0,0,0">
      <item>
       <widget class="QPushButton" name="pushButton_3">
        <property name="text">
@@ -71,6 +71,13 @@
       <widget class="QLineEdit" name="lineEdit_threshold">
        <property name="readOnly">
         <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_4">
+       <property name="text">
+        <string>Определение</string>
        </property>
       </widget>
      </item>

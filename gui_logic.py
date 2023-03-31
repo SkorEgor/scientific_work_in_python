@@ -76,9 +76,10 @@ class GuiProgram(Ui_Dialog):
         self.pushButton.clicked.connect(self.plotting_without_noise)
         self.pushButton_2.clicked.connect(self.signal_plotting)
         self.pushButton_3.clicked.connect(self.signal_difference)
+        self.pushButton_4.clicked.connect(self.threshold)
 
         self.lineEdit_threshold.setText(str(self.threshold_percentage))
-        self.lineEdit_threshold.textChanged.connect(self.threshold)
+        # self.lineEdit_threshold.textChanged.connect(self.threshold)
 
     def initialize_figure(self, fig, ax):
         """ Initializes a matplotlib figure inside a GUI container.
@@ -114,10 +115,11 @@ class GuiProgram(Ui_Dialog):
 
     def plotting_without_noise(self):
         # Вызов окна выбора файла
-        filename, filetype = QFileDialog.getOpenFileName(None,
-                                                         "Выбрать файл без шума",
-                                                         ".",
-                                                         "Spectrometer Data(*.csv);;All Files(*)")
+        # filename, filetype = QFileDialog.getOpenFileName(None,
+        #                                                 "Выбрать файл без шума",
+        #                                                 ".",
+        #                                                "Spectrometer Data(*.csv);;All Files(*)")
+        filename = "25empty.csv"
 
         if filename == '':
             return
@@ -141,10 +143,12 @@ class GuiProgram(Ui_Dialog):
 
     def signal_plotting(self):
         # Вызов окна выбора файла
-        filename, filetype = QFileDialog.getOpenFileName(None,
-                                                         "Выбрать файл сигнала",
-                                                         ".",
-                                                         "Spectrometer Data(*.csv);;All Files(*)")
+        # filename, filetype = QFileDialog.getOpenFileName(None,
+        #                                                 "Выбрать файл сигнала",
+        #                                                 ".",
+        #                                                 "Spectrometer Data(*.csv);;All Files(*)")
+
+        filename = "25DMSO.csv"
 
         if filename == '':
             return
@@ -189,13 +193,38 @@ class GuiProgram(Ui_Dialog):
             return
 
         # Значение порога
+        self.threshold_percentage = float(self.lineEdit_threshold.text())
+        print(type(self.lineEdit_threshold.text()), self.lineEdit_threshold.text())
         threshold_value = max(self.difference) * self.threshold_percentage / 100.
+
+        # ПЕРЕРИСОВКА 2 ГРАФИКА
+        self.ax2.clear()
+        # Plot data, add labels, change colors, ...
+        self.ax2.set_xlabel('frequency')
+        self.ax2.set_ylabel('error')
+        self.ax2.plot(self.empty_frequency, self.difference, color='g', label='empty')
+        # Make sure everything fits inside the canvas
+        self.fig2.tight_layout()
+        # Show the new figure in the interface
+        self.canvas2.draw()
 
         # Отрисовка порога
         threshold_signal = [threshold_value] * len(self.difference)
         self.ax2.plot(self.empty_frequency, threshold_signal, color='r', label='empty')
         self.fig2.tight_layout()
         self.canvas2.draw()
+
+        # ПЕРЕРИСОВКА 1 ГРАФИКА
+        self.ax1.clear()
+        # Plot data, add labels, change colors, ...
+        self.ax1.set_xlabel('frequency')
+        self.ax1.set_ylabel('gamma')
+        self.ax1.plot(self.empty_frequency, self.empty_gamma, color='r', label='empty')
+        self.ax1.plot(self.signal_frequency, self.signal_gamma, color='g', label='signal')
+        # Make sure everything fits inside the canvas
+        self.fig1.tight_layout()
+        # Show the new figure in the interface
+        self.canvas1.draw()
 
         # Вычисление промежутков и выделение их на
         self.frequency_indexes_above_threshold.clear()
@@ -220,7 +249,7 @@ class GuiProgram(Ui_Dialog):
             for i in interval_i:
                 x.append(self.signal_frequency[i])
                 y.append(self.signal_gamma[i])
-            print(x,y)
+            print(x, y)
             self.ax1.plot(x, y, color='b', label='signal')
 
         self.fig1.tight_layout()

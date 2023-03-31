@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(628, 511)
+        Dialog.resize(810, 572)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.plotWindow = QtWidgets.QWidget(Dialog)
@@ -51,6 +51,9 @@ class Ui_Dialog(object):
         self.lineEdit_threshold.setReadOnly(False)
         self.lineEdit_threshold.setObjectName("lineEdit_threshold")
         self.horizontalLayout_2.addWidget(self.lineEdit_threshold)
+        self.pushButton_4 = QtWidgets.QPushButton(Dialog)
+        self.pushButton_4.setObjectName("pushButton_4")
+        self.horizontalLayout_2.addWidget(self.pushButton_4)
         self.horizontalLayout_2.setStretch(0, 2)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.verticalLayout_2.setStretch(0, 1)
@@ -66,3 +69,4 @@ class Ui_Dialog(object):
         self.pushButton_2.setText(_translate("Dialog", "Выбор данных ( с шумом )"))
         self.pushButton_3.setText(_translate("Dialog", "Вычитание"))
         self.label.setText(_translate("Dialog", "Пороговое значение (%):"))
+        self.pushButton_4.setText(_translate("Dialog", "Определение"))
