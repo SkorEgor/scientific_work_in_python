@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 
 
-def parser(string_list, frequency_list, gamma_list):
+def parser_all_data(string_list, frequency_list, gamma_list):
     frequency_list.clear()
     gamma_list.clear()
 
@@ -24,6 +24,29 @@ def parser(string_list, frequency_list, gamma_list):
         row = line.split()
         frequency_list.append(float(row[1]))
         gamma_list.append(float(row[4]))
+
+
+def parser(string_list, frequency_list, gamma_list, start_frequency, end_frequency):
+    frequency_list.clear()
+    gamma_list.clear()
+
+    skipping_first_line = True
+    for line in string_list:
+        # Пропуск первой строки
+        if skipping_first_line:
+            skipping_first_line = False
+            continue
+
+        # Если звездочки, конец файла
+        if line[0] == "*":
+            break
+
+        row = line.split()
+
+        # Если частота в диапазоне частот берем
+        if start_frequency < float(row[1]) < end_frequency:
+            frequency_list.append(float(row[1]))
+            gamma_list.append(float(row[4]))
 
 
 class GuiProgram(Ui_Dialog):
@@ -128,7 +151,12 @@ class GuiProgram(Ui_Dialog):
         with open(filename) as f:
             list_line = f.readlines()  # Читаем пустую строку
 
-        parser(list_line, self.empty_frequency, self.empty_gamma)
+        if self.checkBox.checkState():
+            start_frequency = float(self.lineEdit_threshold_2.text())
+            end_frequency = float(self.lineEdit_threshold_3.text())
+            parser(list_line, self.empty_frequency, self.empty_gamma, start_frequency, end_frequency)
+        else:
+            parser_all_data(list_line, self.empty_frequency, self.empty_gamma)
 
         # Clear whatever was in the plot before
         self.ax1.clear()
@@ -155,9 +183,14 @@ class GuiProgram(Ui_Dialog):
 
         # Чтение данных
         with open(filename) as f:
-            list_line = f.readlines()  # Читаем пустую строку
+            list_line = f.readlines()
 
-        parser(list_line, self.signal_frequency, self.signal_gamma)
+        if self.checkBox.checkState():
+            start_frequency = float(self.lineEdit_threshold_2.text())
+            end_frequency = float(self.lineEdit_threshold_3.text())
+            parser(list_line, self.signal_frequency, self.signal_gamma, start_frequency, end_frequency)
+        else:
+            parser_all_data(list_line, self.signal_frequency, self.signal_gamma)
 
         self.ax1.plot(self.signal_frequency, self.signal_gamma, color='g', label='signal')
         # Make sure everything fits inside the canvas
@@ -171,6 +204,7 @@ class GuiProgram(Ui_Dialog):
             return
 
         # Вычитаем отсчеты сигнала с ошибкой и без
+        self.difference.clear()
         for i in range(0, len(self.empty_gamma)):
             self.difference.append(abs(self.empty_gamma[i] - self.signal_gamma[i]))
 
@@ -194,7 +228,6 @@ class GuiProgram(Ui_Dialog):
 
         # Значение порога
         self.threshold_percentage = float(self.lineEdit_threshold.text())
-        print(type(self.lineEdit_threshold.text()), self.lineEdit_threshold.text())
         threshold_value = max(self.difference) * self.threshold_percentage / 100.
 
         # ПЕРЕРИСОВКА 2 ГРАФИКА
@@ -239,8 +272,7 @@ class GuiProgram(Ui_Dialog):
                         self.frequency_indexes_above_threshold.append(index_interval)
                     index_interval = [i]
                 last_index = i
-
-        print(self.frequency_indexes_above_threshold)
+        self.frequency_indexes_above_threshold.append(index_interval)
 
         # Выделение промежутков на 1 графике
         for interval_i in self.frequency_indexes_above_threshold:
@@ -249,8 +281,9 @@ class GuiProgram(Ui_Dialog):
             for i in interval_i:
                 x.append(self.signal_frequency[i])
                 y.append(self.signal_gamma[i])
-            print(x, y)
+
             self.ax1.plot(x, y, color='b', label='signal')
+
 
         self.fig1.tight_layout()
         self.canvas1.draw()
