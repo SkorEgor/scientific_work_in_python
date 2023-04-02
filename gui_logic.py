@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFileDialog, QTableWidget, QTableWidgetItem
 from gui import Ui_Dialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
@@ -49,6 +50,24 @@ def parser(string_list, frequency_list, gamma_list, start_frequency, end_frequen
             gamma_list.append(float(row[4]))
 
 
+def search_for_peak_on_interval(frequency_list, gamma_list):
+    index_max_gamma = 0
+    for i in range(1, len(gamma_list)):
+        if gamma_list[index_max_gamma] < gamma_list[i]:
+            index_max_gamma = i
+    return frequency_list[index_max_gamma], gamma_list[index_max_gamma]
+
+
+def list_ranges_to_list_peaks(frequency_list, gamma_list):
+    frequency_peaks = []
+    gamma_peaks = []
+    for frequency_ranges, gamma_ranges in zip(frequency_list, gamma_list):
+        f, g = search_for_peak_on_interval(frequency_ranges, gamma_ranges)
+        frequency_peaks.append(f)
+        gamma_peaks.append(g)
+    return frequency_peaks, gamma_peaks
+
+
 class GuiProgram(Ui_Dialog):
     """ A class which takes care of user interaction. """
 
@@ -66,6 +85,14 @@ class GuiProgram(Ui_Dialog):
 
         # Разница сигналов
         self.difference = []
+
+        # Список диапазонов пиков
+        self.gamma_range = []
+        self.frequency_range = []
+
+        # Список пиков
+        self.gamma_peak = []
+        self.frequency_peak = []
 
         # Порог
         self.frequency_indexes_above_threshold = []
@@ -103,6 +130,11 @@ class GuiProgram(Ui_Dialog):
 
         self.lineEdit_threshold.setText(str(self.threshold_percentage))
         # self.lineEdit_threshold.textChanged.connect(self.threshold)
+
+        self.tableWidget.cellClicked.connect(self.getClickedCell)
+
+    def getClickedCell(self, row, column):
+        print('clicked!', row, column)
 
     def initialize_figure(self, fig, ax):
         """ Initializes a matplotlib figure inside a GUI container.
@@ -259,7 +291,7 @@ class GuiProgram(Ui_Dialog):
         # Show the new figure in the interface
         self.canvas1.draw()
 
-        # Вычисление промежутков и выделение их на
+        # Вычисление промежутков и выделение их
         self.frequency_indexes_above_threshold.clear()
         index_interval = []
         last_index = 0
@@ -275,6 +307,8 @@ class GuiProgram(Ui_Dialog):
         self.frequency_indexes_above_threshold.append(index_interval)
 
         # Выделение промежутков на 1 графике
+        self.gamma_range.clear()
+        self.frequency_range.clear()
         for interval_i in self.frequency_indexes_above_threshold:
             x = []
             y = []
@@ -282,8 +316,31 @@ class GuiProgram(Ui_Dialog):
                 x.append(self.signal_frequency[i])
                 y.append(self.signal_gamma[i])
 
+            self.gamma_range.append(y)
+            self.frequency_range.append(x)
+
             self.ax1.plot(x, y, color='b', label='signal')
-
-
+        # Построение занесенных диапазонов
         self.fig1.tight_layout()
         self.canvas1.draw()
+
+        # Нахождение пиков
+        self.frequency_peak, self.gamma_peak = list_ranges_to_list_peaks(self.frequency_range, self.gamma_range)
+        print(self.frequency_peak, self.gamma_peak)
+
+        # Вывод данных в таблицу
+        self.table()
+
+    def table(self):
+
+        self.tableWidget.setRowCount(len(self.frequency_peak))
+        self.tableWidget.setColumnCount(2)
+
+        self.tableWidget.setHorizontalHeaderLabels(["Частота", "Гамма"])
+
+        index = 0
+        for f, g in zip(self.frequency_peak, self.gamma_peak):
+            self.tableWidget.setItem(index, 0, QTableWidgetItem(str(f)))
+            self.tableWidget.setItem(index, 1, QTableWidgetItem(str(g)))
+            index += 1
+
