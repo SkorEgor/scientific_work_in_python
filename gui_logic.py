@@ -127,11 +127,36 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_2.clicked.connect(self.signal_plotting)
         self.pushButton_3.clicked.connect(self.signal_difference)
         self.pushButton_4.clicked.connect(self.threshold)
+        self.pushButton_5.clicked.connect(self.saving_data)
 
         self.lineEdit_threshold.setText(str(self.threshold_percentage))
         # self.lineEdit_threshold.textChanged.connect(self.threshold)
 
         self.tableWidget.cellClicked.connect(self.get_clicked_cell)
+
+    def saving_data(self):
+        print("ok")
+        if self.frequency_peak == [] or self.gamma_peak == []:
+            return
+        print("ok")
+
+        recommended_file_name = "F" + str(self.signal_frequency[0]) + "-" + str(
+            self.signal_frequency[len(self.signal_frequency) - 1]) + "_threshold-" + self.lineEdit_threshold.text()
+
+        filename, filetype = QFileDialog.getSaveFileName(
+            None,
+            'Сохранение',
+            recommended_file_name,
+            "Spectrometer Data(*.csv);;Text(*.txt);;All Files(*)"
+        )
+
+        print(filename)
+        with open(filename, "w") as file:
+            file.write("FREQUENCY:\tGAMMA:\n")
+            for f, g in zip(self.frequency_peak, self.gamma_peak):
+                file.write(str('%.3f' % f) + "\t" + str('%.7E' % g) + "\n")
+
+            file.write('''***********************************************************\nFinish''')
 
     def home_callback(self):
         if not self.difference:
@@ -151,7 +176,7 @@ class GuiProgram(Ui_Dialog):
     def get_clicked_cell(self, row, column):
         print('clicked!', row, column)
 
-        frequency_left_or_right = 4
+        frequency_left_or_right = float(self.lineEdit.text())
         self.ax1.set_xlim([
             self.frequency_peak[row - 1] - frequency_left_or_right,
             self.frequency_peak[row - 1] + frequency_left_or_right

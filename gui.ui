@@ -17,7 +17,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,0">
+      <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1,0,1,0">
          <item>
@@ -141,14 +141,39 @@
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="tableWidget">
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-        </widget>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QTableWidget" name="tableWidget">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Ширина окна диапазона с полезным сигналом</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="text">
+            <string>4</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_5">
+           <property name="text">
+            <string>Сохранение в файл</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
