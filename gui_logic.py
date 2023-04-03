@@ -131,10 +131,37 @@ class GuiProgram(Ui_Dialog):
         self.lineEdit_threshold.setText(str(self.threshold_percentage))
         # self.lineEdit_threshold.textChanged.connect(self.threshold)
 
-        self.tableWidget.cellClicked.connect(self.getClickedCell)
+        self.tableWidget.cellClicked.connect(self.get_clicked_cell)
 
-    def getClickedCell(self, row, column):
+    def home_callback(self):
+        if not self.difference:
+            return
+
+        self.ax1.set_xlim([
+            self.signal_frequency[0],
+            self.signal_frequency[len(self.signal_frequency) - 1]
+        ])
+        self.ax1.set_ylim([
+            min(self.signal_gamma),
+            max(self.signal_gamma)
+        ])
+
+        self.canvas1.draw()
+
+    def get_clicked_cell(self, row, column):
         print('clicked!', row, column)
+
+        frequency_left_or_right = 4
+        self.ax1.set_xlim([
+            self.frequency_peak[row - 1] - frequency_left_or_right,
+            self.frequency_peak[row - 1] + frequency_left_or_right
+        ])
+        print([
+            self.frequency_peak[row - 1] - frequency_left_or_right,
+            self.frequency_peak[row - 1] + frequency_left_or_right
+        ])
+
+        self.canvas1.draw()
 
     def initialize_figure(self, fig, ax):
         """ Initializes a matplotlib figure inside a GUI container.
@@ -150,6 +177,8 @@ class GuiProgram(Ui_Dialog):
         # Toolbar creation
         self.toolbar1 = NavigationToolbar(self.canvas1, self.plotWindow,
                                           coordinates=True)
+        # Доп. Обработчик клавиши home
+        self.toolbar1.actions()[0].triggered.connect(self.home_callback)
         self.plotLayout.addWidget(self.toolbar1)
 
     def initialize_figure2(self, fig, ax):
@@ -320,6 +349,7 @@ class GuiProgram(Ui_Dialog):
             self.frequency_range.append(x)
 
             self.ax1.plot(x, y, color='b', label='signal')
+
         # Построение занесенных диапазонов
         self.fig1.tight_layout()
         self.canvas1.draw()
@@ -343,4 +373,3 @@ class GuiProgram(Ui_Dialog):
             self.tableWidget.setItem(index, 0, QTableWidgetItem(str(f)))
             self.tableWidget.setItem(index, 1, QTableWidgetItem(str(g)))
             index += 1
-
