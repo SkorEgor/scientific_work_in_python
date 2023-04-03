@@ -130,32 +130,41 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_5.clicked.connect(self.saving_data)
 
         self.lineEdit_threshold.setText(str(self.threshold_percentage))
-        # self.lineEdit_threshold.textChanged.connect(self.threshold)
 
         self.tableWidget.cellClicked.connect(self.get_clicked_cell)
 
     def saving_data(self):
-        print("ok")
+        # Проверка, что данные для сохранения есть
         if self.frequency_peak == [] or self.gamma_peak == []:
             return
-        print("ok")
 
+        # Рек-мое название файла
         recommended_file_name = "F" + str(self.signal_frequency[0]) + "-" + str(
             self.signal_frequency[len(self.signal_frequency) - 1]) + "_threshold-" + self.lineEdit_threshold.text()
 
-        filename, filetype = QFileDialog.getSaveFileName(
+        # Окно с выбором места сохранения
+        file_name, file_type = QFileDialog.getSaveFileName(
             None,
             'Сохранение',
             recommended_file_name,
             "Spectrometer Data(*.csv);;Text(*.txt);;All Files(*)"
         )
 
-        print(filename)
-        with open(filename, "w") as file:
+        # Если имя не получено, прервать
+        if file_name == '':
+            return
+
+        # Открываем файл для чтения
+        with open(file_name, "w") as file:
+
+            # Заголовок/Название столбцов
             file.write("FREQUENCY:\tGAMMA:\n")
+
+            # Перебираем по парно частоты и гаммы пиков; Записываем по строчно в файл
             for f, g in zip(self.frequency_peak, self.gamma_peak):
                 file.write(str('%.3f' % f) + "\t" + str('%.7E' % g) + "\n")
 
+            # Конец файла
             file.write('''***********************************************************\nFinish''')
 
     def home_callback(self):
@@ -286,7 +295,7 @@ class GuiProgram(Ui_Dialog):
 
     def signal_difference(self):
         # Пустые сигналы - прекращаем
-        if self.empty_gamma == [] and self.signal_gamma == []:
+        if self.empty_gamma == [] or self.signal_gamma == []:
             return
 
         # Вычитаем отсчеты сигнала с ошибкой и без
