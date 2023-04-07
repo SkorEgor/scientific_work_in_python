@@ -132,7 +132,7 @@ class GuiProgram(Ui_Dialog):
 
         # Порог
         self.frequency_indexes_above_threshold = []
-        self.threshold_percentage = 30.
+        self.threshold_percentage = 30
 
         # Параметры 1 графика
         self.ax1 = None
@@ -165,10 +165,53 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_4.clicked.connect(self.threshold)
         self.pushButton_5.clicked.connect(self.saving_data)
 
-        self.lineEdit_threshold.setText(str(self.threshold_percentage))
-
         self.tableWidget.cellClicked.connect(self.get_clicked_cell)
         self.checkBox.toggled.connect(self.filter_state_changed)
+
+        self.lineEdit_threshold_2.textChanged.connect(self.filter_changed)
+        self.lineEdit_threshold_3.textChanged.connect(self.filter_changed)
+
+        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setHorizontalHeaderLabels(["Частота МГц", "Гамма"])
+
+        # Задаем начало сценария, активные и не активные кнопки
+        self.state1_initial()
+
+    def filter_changed(self):
+        self.pushButton_2.setEnabled(False)
+
+    #Начальное состояние
+    def state1_initial(self):
+        self.pushButton.setEnabled(True)
+        self.pushButton_2.setEnabled(False)
+        self.pushButton_3.setEnabled(False)
+        self.pushButton_4.setEnabled(False)
+
+        # Загружен пустой график
+    def state2_loaded_empty(self):
+        self.pushButton.setEnabled(True)
+        self.pushButton_2.setEnabled(True)
+        self.pushButton_3.setEnabled(False)
+        self.pushButton_4.setEnabled(False)
+
+        self.ax2.clear()
+        self.canvas2.draw()
+
+        self.tableWidget.setRowCount(0);
+
+    # Загружены оба графика
+    def state3_data_loaded(self):
+        self.pushButton.setEnabled(True)
+        self.pushButton_2.setEnabled(False)
+        self.pushButton_3.setEnabled(True)
+        self.pushButton_4.setEnabled(False)
+
+    # Есть разница сигналов
+    def state4_difference(self):
+        self.pushButton.setEnabled(True)
+        self.pushButton_2.setEnabled(False)
+        self.pushButton_3.setEnabled(True)
+        self.pushButton_4.setEnabled(True)
 
     def filter_state_changed(self):
         state = self.checkBox.checkState()
@@ -315,6 +358,8 @@ class GuiProgram(Ui_Dialog):
         self.canvas1.draw()
         self.toolbar1.push_current()
 
+        self.state2_loaded_empty()
+
     def signal_plotting(self):
         # Вызов окна выбора файла
         # filename, filetype = QFileDialog.getOpenFileName(None,
@@ -364,6 +409,8 @@ class GuiProgram(Ui_Dialog):
         # Show the new figure in the interface
         self.canvas1.draw()
 
+        self.state3_data_loaded()
+
     def signal_difference(self):
         # Пустые сигналы - прекращаем
         if self.empty_gamma == [] or self.signal_gamma == []:
@@ -387,6 +434,8 @@ class GuiProgram(Ui_Dialog):
         self.canvas2.draw()
 
         self.threshold()
+
+        self.state4_difference()
 
     def threshold(self):
         if not self.difference:

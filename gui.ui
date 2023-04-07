@@ -150,6 +150,9 @@
            </item>
            <item>
             <widget class="QLineEdit" name="lineEdit_threshold">
+             <property name="text">
+              <string>30</string>
+             </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
              </property>

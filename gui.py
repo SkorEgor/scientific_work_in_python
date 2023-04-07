@@ -144,6 +144,7 @@ class Ui_Dialog(object):
         self.pushButton_2.setText(_translate("Dialog", "Выбор данных ( с шумом )"))
         self.pushButton_3.setText(_translate("Dialog", "Вычитание"))
         self.label.setText(_translate("Dialog", "Пороговое значение (%):"))
+        self.lineEdit_threshold.setText(_translate("Dialog", "30"))
         self.pushButton_4.setText(_translate("Dialog", "Определение"))
         self.label_4.setText(_translate("Dialog", "Ширина окна просмотра \n"
 " найденных частот в МГц"))
