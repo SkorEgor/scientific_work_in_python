@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFileDialog, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QFileDialog, QTableWidget, QTableWidgetItem, QMessageBox
 from gui import Ui_Dialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
@@ -68,12 +68,48 @@ def list_ranges_to_list_peaks(frequency_list, gamma_list):
     return frequency_peaks, gamma_peaks
 
 
+def frequency_input_check(frequency, field_name):
+    try:
+        frequency = float(frequency)
+
+    except ValueError:
+        QMessageBox.about(None, "Ошибка ввода", "Введите число в поле '" + field_name + "'.")
+        return False
+
+    # Проверка положительности
+    if frequency < 0:
+        QMessageBox.about(None, "Ошибка ввода", "Введите положительное число в поле '" + field_name + "'.")
+        return False
+
+    return True
+
+
+def percentage_check(percentage):
+    try:
+        percentage = float(percentage)
+
+    except ValueError:
+        QMessageBox.about(None, "Ошибка ввода", "Введите число в поле порога.")
+        return False
+
+    # Проверка
+    if percentage < 0 or percentage > 100:
+        QMessageBox.about(None, "Ошибка ввода", "Пороговое значение должно быть от 0 до 100.")
+        return False
+
+    return True
+
+
 class GuiProgram(Ui_Dialog):
     """ A class which takes care of user interaction. """
 
     def __init__(self, dialog):
         """ This method gets called when the window is created. """
         Ui_Dialog.__init__(self)  # Initialize Window
+
+        # Диапазон частот из файла
+        self.frequency_range_start = 0
+        self.frequency_range_end = 0
 
         # Без шума
         self.empty_frequency = []
@@ -132,6 +168,12 @@ class GuiProgram(Ui_Dialog):
         self.lineEdit_threshold.setText(str(self.threshold_percentage))
 
         self.tableWidget.cellClicked.connect(self.get_clicked_cell)
+        self.checkBox.toggled.connect(self.filter_state_changed)
+
+    def filter_state_changed(self):
+        state = self.checkBox.checkState()
+        self.lineEdit_threshold_2.setEnabled(state)
+        self.lineEdit_threshold_3.setEnabled(state)
 
     def saving_data(self):
         # Проверка, что данные для сохранения есть
@@ -151,7 +193,7 @@ class GuiProgram(Ui_Dialog):
         )
 
         # Если имя не получено, прервать
-        if file_name == '':
+        if not file_name:
             return
 
         # Открываем файл для чтения
@@ -183,14 +225,18 @@ class GuiProgram(Ui_Dialog):
         self.canvas1.draw()
 
     def get_clicked_cell(self, row, column):
-        print('clicked!', row, column)
+        window_width = self.lineEdit.text()
 
-        frequency_left_or_right = float(self.lineEdit.text())
+        # Проверка на цифры и положительность
+        if not window_width.isdigit():
+            QMessageBox.about(None, "Ошибка ввода", "Введите положительное число в поле ширины окна.")
+            return
+
+        window_width = float(window_width)
+
+        frequency_left_or_right = window_width / 2
+
         self.ax1.set_xlim([
-            self.frequency_peak[row - 1] - frequency_left_or_right,
-            self.frequency_peak[row - 1] + frequency_left_or_right
-        ])
-        print([
             self.frequency_peak[row - 1] - frequency_left_or_right,
             self.frequency_peak[row - 1] + frequency_left_or_right
         ])
@@ -244,11 +290,31 @@ class GuiProgram(Ui_Dialog):
 
         # Чтение данных
         with open(filename) as f:
-            list_line = f.readlines()  # Читаем пустую строку
+            list_line = f.readlines()  # Читаем по строчно
 
         if self.checkBox.checkState():
-            start_frequency = float(self.lineEdit_threshold_2.text())
-            end_frequency = float(self.lineEdit_threshold_3.text())
+            # Считываем "Частоту от"
+            start_frequency = self.lineEdit_threshold_2.text()
+            # Проверка
+            if not frequency_input_check(start_frequency, "Частота от"):
+                return
+            # Приводим к дробному
+            start_frequency = float(start_frequency)
+
+            # Считываем "Частоту до"
+            end_frequency = self.lineEdit_threshold_3.text()
+            # Проверка
+            if not frequency_input_check(end_frequency, "Частота до"):
+                return
+            # Приводим к дробному
+            end_frequency = float(end_frequency)
+
+            # Проверка на правильность границ
+            if end_frequency < start_frequency:
+                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения. ")
+                return
+
+            # Парс данных
             parser(list_line, self.empty_frequency, self.empty_gamma, start_frequency, end_frequency)
         else:
             parser_all_data(list_line, self.empty_frequency, self.empty_gamma)
@@ -256,7 +322,7 @@ class GuiProgram(Ui_Dialog):
         # Clear whatever was in the plot before
         self.ax1.clear()
         # Plot data, add labels, change colors, ...
-        self.ax1.set_xlabel('frequency')
+        self.ax1.set_xlabel('frequency MHz')
         self.ax1.set_ylabel('gamma')
         self.ax1.plot(self.empty_frequency, self.empty_gamma, color='r', label='empty')
         # Make sure everything fits inside the canvas
@@ -281,8 +347,28 @@ class GuiProgram(Ui_Dialog):
             list_line = f.readlines()
 
         if self.checkBox.checkState():
-            start_frequency = float(self.lineEdit_threshold_2.text())
-            end_frequency = float(self.lineEdit_threshold_3.text())
+            # Считываем "Частоту от"
+            start_frequency = self.lineEdit_threshold_2.text()
+            # Проверка
+            if not frequency_input_check(start_frequency, "Частота от"):
+                return
+            # Приводим к дробному
+            start_frequency = float(start_frequency)
+
+            # Считываем "Частоту до"
+            end_frequency = self.lineEdit_threshold_3.text()
+            # Проверка
+            if not frequency_input_check(end_frequency, "Частота до"):
+                return
+            # Приводим к дробному
+            end_frequency = float(end_frequency)
+
+            # Проверка на правильность границ
+            if end_frequency < start_frequency:
+                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения. ")
+                return
+
+            # Парс данных
             parser(list_line, self.signal_frequency, self.signal_gamma, start_frequency, end_frequency)
         else:
             parser_all_data(list_line, self.signal_frequency, self.signal_gamma)
@@ -321,8 +407,16 @@ class GuiProgram(Ui_Dialog):
         if not self.difference:
             return
 
+        # Запрос порогового значения
+        threshold = self.lineEdit_threshold.text()
+
+        # Проверка ввода
+        if not percentage_check(threshold):
+            return
+        threshold = float(threshold)
+
         # Значение порога
-        self.threshold_percentage = float(self.lineEdit_threshold.text())
+        self.threshold_percentage = threshold
         threshold_value = max(self.difference) * self.threshold_percentage / 100.
 
         # ПЕРЕРИСОВКА 2 ГРАФИКА
@@ -400,7 +494,7 @@ class GuiProgram(Ui_Dialog):
         self.tableWidget.setRowCount(len(self.frequency_peak))
         self.tableWidget.setColumnCount(2)
 
-        self.tableWidget.setHorizontalHeaderLabels(["Частота", "Гамма"])
+        self.tableWidget.setHorizontalHeaderLabels(["Частота МГц", "Гамма"])
 
         index = 0
         for f, g in zip(self.frequency_peak, self.gamma_peak):

@@ -27,24 +27,37 @@
              <item>
               <widget class="QCheckBox" name="checkBox">
                <property name="text">
-                <string>Фильтр на чтение</string>
+                <string>Фильтр на чтение.</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Частота от</string>
+                <string>Частота от </string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLineEdit" name="lineEdit_threshold_2">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>22308</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
                <property name="readOnly">
                 <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string> МГц    </string>
                </property>
               </widget>
              </item>
@@ -57,11 +70,24 @@
              </item>
              <item>
               <widget class="QLineEdit" name="lineEdit_threshold_3">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="text">
                 <string>22342</string>
                </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
                <property name="readOnly">
                 <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string> МГц  </string>
                </property>
               </widget>
              </item>
@@ -124,6 +150,9 @@
            </item>
            <item>
             <widget class="QLineEdit" name="lineEdit_threshold">
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
              <property name="readOnly">
               <bool>false</bool>
              </property>
@@ -154,8 +183,15 @@
          </item>
          <item>
           <widget class="QLabel" name="label_4">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
            <property name="text">
-            <string>Ширина окна диапазона с полезным сигналом</string>
+            <string>Ширина окна просмотра 
+ найденных частот в МГц</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -163,6 +199,9 @@
           <widget class="QLineEdit" name="lineEdit">
            <property name="text">
             <string>4</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
