@@ -209,21 +209,6 @@ class GuiProgram(Ui_Dialog):
             # Конец файла
             file.write('''***********************************************************\nFinish''')
 
-    def home_callback(self):
-        if not self.difference:
-            return
-
-        self.ax1.set_xlim([
-            self.signal_frequency[0],
-            self.signal_frequency[len(self.signal_frequency) - 1]
-        ])
-        self.ax1.set_ylim([
-            min(self.signal_gamma),
-            max(self.signal_gamma)
-        ])
-
-        self.canvas1.draw()
-
     def get_clicked_cell(self, row, column):
         window_width = self.lineEdit.text()
 
@@ -257,8 +242,6 @@ class GuiProgram(Ui_Dialog):
         # Toolbar creation
         self.toolbar1 = NavigationToolbar(self.canvas1, self.plotWindow,
                                           coordinates=True)
-        # Доп. Обработчик клавиши home
-        self.toolbar1.actions()[0].triggered.connect(self.home_callback)
         self.plotLayout.addWidget(self.toolbar1)
 
     def initialize_figure2(self, fig, ax):
@@ -325,10 +308,12 @@ class GuiProgram(Ui_Dialog):
         self.ax1.set_xlabel('frequency MHz')
         self.ax1.set_ylabel('gamma')
         self.ax1.plot(self.empty_frequency, self.empty_gamma, color='r', label='empty')
+
         # Make sure everything fits inside the canvas
         self.fig1.tight_layout()
         # Show the new figure in the interface
         self.canvas1.draw()
+        self.toolbar1.push_current()
 
     def signal_plotting(self):
         # Вызов окна выбора файла
