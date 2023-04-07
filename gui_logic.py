@@ -1,5 +1,8 @@
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QFileDialog, QTableWidget, QTableWidgetItem, QMessageBox, QCheckBox, QTableWidgetItem, \
+    QVBoxLayout, QWidget, QHBoxLayout
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFileDialog, QTableWidget, QTableWidgetItem, QMessageBox
+
 from gui import Ui_Dialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import (
@@ -171,8 +174,7 @@ class GuiProgram(Ui_Dialog):
         self.lineEdit_threshold_2.textChanged.connect(self.filter_changed)
         self.lineEdit_threshold_3.textChanged.connect(self.filter_changed)
 
-        self.tableWidget.setColumnCount(2)
-        self.tableWidget.setHorizontalHeaderLabels(["Частота МГц", "Гамма"])
+        self.initialize_table()
 
         # Задаем начало сценария, активные и не активные кнопки
         self.state1_initial()
@@ -180,7 +182,7 @@ class GuiProgram(Ui_Dialog):
     def filter_changed(self):
         self.pushButton_2.setEnabled(False)
 
-    #Начальное состояние
+    # Начальное состояние
     def state1_initial(self):
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(False)
@@ -188,6 +190,7 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_4.setEnabled(False)
 
         # Загружен пустой график
+
     def state2_loaded_empty(self):
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(True)
@@ -270,6 +273,19 @@ class GuiProgram(Ui_Dialog):
         ])
 
         self.canvas1.draw()
+        #
+        # for i in range(self.tableWidget.rowCount()):
+        #     if self.tableWidget.item(i,2).checkState() == Qt.CheckState.Checked:
+        #         print(i,True)
+        #     else:
+        #         print(i,False)
+
+    def initialize_table(self):
+        self.tableWidget.setColumnCount(3)
+        self.tableWidget.setHorizontalHeaderLabels(["Частота МГц", "Гамма", ""])
+        self.tableWidget.horizontalHeaderItem(0).setTextAlignment(Qt.AlignHCenter)
+        self.tableWidget.horizontalHeaderItem(1).setTextAlignment(Qt.AlignHCenter)
+        #self.tableWidget.horizontalHeaderItem(2).setTextAlignment(Qt.AlignHCenter)
 
     def initialize_figure(self, fig, ax):
         """ Initializes a matplotlib figure inside a GUI container.
@@ -518,7 +534,6 @@ class GuiProgram(Ui_Dialog):
 
         # Нахождение пиков
         self.frequency_peak, self.gamma_peak = list_ranges_to_list_peaks(self.frequency_range, self.gamma_range)
-        print(self.frequency_peak, self.gamma_peak)
 
         # Вывод данных в таблицу
         self.table()
@@ -526,7 +541,7 @@ class GuiProgram(Ui_Dialog):
     def table(self):
 
         self.tableWidget.setRowCount(len(self.frequency_peak))
-        self.tableWidget.setColumnCount(2)
+        self.tableWidget.setColumnCount(3)
 
         self.tableWidget.setHorizontalHeaderLabels(["Частота МГц", "Гамма"])
 
@@ -534,4 +549,37 @@ class GuiProgram(Ui_Dialog):
         for f, g in zip(self.frequency_peak, self.gamma_peak):
             self.tableWidget.setItem(index, 0, QTableWidgetItem(str(f)))
             self.tableWidget.setItem(index, 1, QTableWidgetItem(str(g)))
+
+            # checkbox_item = QTableWidgetItem()
+            # checkbox_item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
+            # checkbox_item.setCheckState(Qt.CheckState.Checked)
+            # checkbox_item.toggled.connect(self.onStateChanged)
+            # self.tableWidget.setItem(index,2,checkbox_item)
+
+            # check_box = QtWidgets.QCheckBox()  # Создаем объект чекбокс
+            # check_box.setCheckState(Qt.Checked)
+            # check_box.toggled.connect(self.onStateChanged)
+            # self.tableWidget.setCellWidget(index, 2, check_box )
+
+            widget = self.create_checkbox_for_table()
+            self.tableWidget.setCellWidget(index, 2, widget)
+
+            #self.tableWidget.item(index, 2).toggled.connect(self.onStateChanged)
+
             index += 1
+
+        self.tableWidget.resizeColumnsToContents()
+
+    def create_checkbox_for_table(self):
+        p_widget = QWidget()
+        p_check_box = QCheckBox()
+        p_check_box.setCheckState(Qt.Checked)
+        p_check_box.toggled.connect(self.onStateChanged)
+        p_layout = QHBoxLayout(p_widget)
+        p_layout.addWidget(p_check_box)
+        p_layout.setAlignment(Qt.AlignCenter)
+        p_layout.setContentsMargins(0,0,0,0)
+        p_widget.setLayout(p_layout)
+        return p_widget
+    def onStateChanged(self):
+        print("YAAAA")
