@@ -1,4 +1,4 @@
-from Data_and_processing import DataAndProcessing
+from data_and_processing import DataAndProcessing
 from gui import Ui_Dialog
 
 from PyQt5 import QtWidgets
