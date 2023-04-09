@@ -25,7 +25,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <widget class="QCheckBox" name="checkBox">
+              <widget class="QCheckBox" name="checkBox_read_filter">
                <property name="text">
                 <string>Фильтр на чтение.</string>
                </property>
@@ -184,6 +184,13 @@
            </property>
            <property name="selectionBehavior">
             <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_statistics_on_selected_frequencies">
+           <property name="text">
+            <string/>
            </property>
           </widget>
          </item>
