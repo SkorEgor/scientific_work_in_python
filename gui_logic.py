@@ -439,6 +439,7 @@ class GuiProgram(Ui_Dialog):
         # Запускаем сценарий: Есть разница сигналов
         self.state4_difference()
 
+    # Расчет порога, интервалов больше порога, частот поглощения, отображение на графиках
     def threshold(self):
         # Нет разницы сигналов - сброс
         if not self.data_signals.difference:
@@ -502,6 +503,7 @@ class GuiProgram(Ui_Dialog):
         # Вывод данных в таблицу
         self.table()
 
+    # Заполение таблицы
     def table(self):
         # Задаем кол-во столбцов и строк
         self.tableWidget_frequency_absorption.setRowCount(len(self.data_signals.frequency_peak))
