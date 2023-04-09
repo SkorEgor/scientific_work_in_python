@@ -151,8 +151,7 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_loading_signal_data.setEnabled(False)
         self.pushButton_signal_difference.setEnabled(False)
         self.pushButton_update_threshold.setEnabled(False)
-
-        # Загружен пустой график
+        self.pushButton_save_table_to_file.setEnabled(False)
 
     # Сценарий: Загружен сигнал без шума
     def state2_loaded_empty(self):
@@ -160,6 +159,7 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_loading_signal_data.setEnabled(True)
         self.pushButton_signal_difference.setEnabled(False)
         self.pushButton_update_threshold.setEnabled(False)
+        self.pushButton_save_table_to_file.setEnabled(False)
 
         self.ax2.clear()
         self.canvas2.draw()
@@ -172,6 +172,7 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_loading_signal_data.setEnabled(False)
         self.pushButton_signal_difference.setEnabled(True)
         self.pushButton_update_threshold.setEnabled(False)
+        self.pushButton_save_table_to_file.setEnabled(False)
 
     # Сценарий: Есть разница сигналов
     def state4_difference(self):
@@ -179,6 +180,7 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_loading_signal_data.setEnabled(False)
         self.pushButton_signal_difference.setEnabled(True)
         self.pushButton_update_threshold.setEnabled(True)
+        self.pushButton_save_table_to_file.setEnabled(True)
 
     # Сценарий: Изменился checkbox вкл/выкл фильтра чтения
     def filter_state_changed(self):
@@ -190,6 +192,7 @@ class GuiProgram(Ui_Dialog):
     def saving_data(self):
         # Проверка, что данные для сохранения есть
         if self.data_signals.frequency_peak == [] or self.data_signals.gamma_peak == []:
+            QMessageBox.about(None, "Ошибка данных", "Нет данных для сохранения.")
             return
 
         # Рек-мое название файла
