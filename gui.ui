@@ -32,14 +32,14 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_2">
+              <widget class="QLabel" name="label_text_frequency_from">
                <property name="text">
                 <string>Частота от </string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_threshold_2">
+              <widget class="QLineEdit" name="lineEdit_filter_frequency_start">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -55,21 +55,21 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_5">
+              <widget class="QLabel" name="label_text_MHz_from">
                <property name="text">
                 <string> МГц    </string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_3">
+              <widget class="QLabel" name="label_text_frequency_to">
                <property name="text">
-                <string>Ширина частот</string>
+                <string>   до </string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_threshold_3">
+              <widget class="QLineEdit" name="lineEdit_filter_frequency_end">
                <property name="enabled">
                 <bool>false</bool>
                </property>
@@ -85,7 +85,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_6">
+              <widget class="QLabel" name="label_text_MHz_to">
                <property name="text">
                 <string> МГц  </string>
                </property>
@@ -96,7 +96,7 @@
           </layout>
          </item>
          <item>
-          <widget class="QWidget" name="plotWindow" native="true">
+          <widget class="QWidget" name="plotWindow_empty_and_signal" native="true">
            <layout class="QVBoxLayout" name="plotLayout"/>
           </widget>
          </item>
@@ -112,14 +112,14 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="pushButton_loading_empty_data">
              <property name="text">
               <string>Выбор данных ( без шума )</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_2">
+            <widget class="QPushButton" name="pushButton_loading_signal_data">
              <property name="text">
               <string>Выбор данных ( с шумом )</string>
              </property>
@@ -128,21 +128,21 @@
           </layout>
          </item>
          <item>
-          <widget class="QWidget" name="plotWindow2" native="true">
+          <widget class="QWidget" name="plotWindow_error_and_threshold" native="true">
            <layout class="QVBoxLayout" name="plotLayout2"/>
           </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,0,0,0">
            <item>
-            <widget class="QPushButton" name="pushButton_3">
+            <widget class="QPushButton" name="pushButton_signal_difference">
              <property name="text">
               <string>Вычитание</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="label_text_threshold_value">
              <property name="text">
               <string>Пороговое значение (%):</string>
              </property>
@@ -162,7 +162,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_4">
+            <widget class="QPushButton" name="pushButton_update_threshold">
              <property name="text">
               <string>Определение</string>
              </property>
@@ -175,7 +175,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QTableWidget" name="tableWidget">
+          <widget class="QTableWidget" name="tableWidget_frequency_absorption">
            <property name="sizeAdjustPolicy">
             <enum>QAbstractScrollArea::AdjustIgnored</enum>
            </property>
@@ -195,7 +195,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="label_text_window_width">
            <property name="layoutDirection">
             <enum>Qt::LeftToRight</enum>
            </property>
@@ -209,7 +209,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit">
+          <widget class="QLineEdit" name="lineEdit_window_width">
            <property name="text">
             <string>4</string>
            </property>
@@ -219,7 +219,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_5">
+          <widget class="QPushButton" name="pushButton_save_table_to_file">
            <property name="text">
             <string>Сохранение в файл</string>
            </property>
