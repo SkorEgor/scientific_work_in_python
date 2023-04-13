@@ -383,7 +383,7 @@ class GuiProgram(Ui_Dialog):
     # Основная программа - (3) Разница пустого и полезного сигнала
     def signal_difference(self):
         # Сигналов нет - прекращаем
-        if self.data_signals.empty_gamma == [] or self.data_signals.signal_gamma == []:
+        if not self.data_signals.empty_gamma or not self.data_signals.signal_gamma:
             return
 
         # Вычитаем отсчеты сигнала с ошибкой и без
@@ -531,7 +531,7 @@ class GuiProgram(Ui_Dialog):
     # Кнопка сохранения таблицы
     def saving_data(self):
         # Проверка, что данные для сохранения есть
-        if self.data_signals.frequency_peak == [] or self.data_signals.gamma_peak == []:
+        if not self.data_signals.frequency_peak or not self.data_signals.gamma_peak:
             QMessageBox.about(None, "Ошибка данных", "Нет данных для сохранения.")
             return
 
