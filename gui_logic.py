@@ -65,12 +65,12 @@ def frequency_input_check(frequency, field_name):
         frequency = float(frequency)
 
     except ValueError:
-        QMessageBox.about(None, "Ошибка ввода", f"Введите число в поле {field_name!r}.")
+        QMessageBox.warning(None, "Ошибка ввода", f"Введите число в поле {field_name!r}.")
         return False
 
     # Проверка положительности
     if frequency < 0:
-        QMessageBox.about(None, "Ошибка ввода", f"Введите положительное число в поле {field_name!r}.")
+        QMessageBox.warning(None, "Ошибка ввода", f"Введите положительное число в поле {field_name!r}.")
         return False
 
     return True
@@ -82,12 +82,12 @@ def window_width_input_check(window_width):
         window_width = float(window_width)
 
     except ValueError:
-        QMessageBox.about(None, "Ошибка ввода", "Введите число в поле 'ширина окна просмотра'.")
+        QMessageBox.warning(None, "Ошибка ввода", "Введите число в поле 'ширина окна просмотра'.")
         return False
 
     # Проверка положительности
     if window_width < 0:
-        QMessageBox.about(None, "Ошибка ввода", "Введите положительное число в поле 'ширина окна просмотра'.")
+        QMessageBox.warning(None, "Ошибка ввода", "Введите положительное число в поле 'ширина окна просмотра'.")
         return False
 
     return True
@@ -99,12 +99,12 @@ def percentage_check(percentage):
         percentage = float(percentage)
 
     except ValueError:
-        QMessageBox.about(None, "Ошибка ввода", "Введите число в поле порога.")
+        QMessageBox.warning(None, "Ошибка ввода", "Введите число в поле порога.")
         return False
 
     # Проверка
     if percentage < 0 or percentage > 100:
-        QMessageBox.about(None, "Ошибка ввода", "Пороговое значение должно быть от 0 до 100.")
+        QMessageBox.warning(None, "Ошибка ввода", "Пороговое значение должно быть от 0 до 100.")
         return False
 
     return True
@@ -293,7 +293,7 @@ class GuiProgram(Ui_Dialog):
 
             # Проверка на правильность границ
             if end_frequency < start_frequency:
-                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения.")
+                QMessageBox.warning(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения. ")
                 return
 
             # Парс данных в заданных частотах
@@ -359,7 +359,7 @@ class GuiProgram(Ui_Dialog):
 
             # Проверка на правильность границ
             if end_frequency < start_frequency:
-                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения.")
+                QMessageBox.warning(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения. ")
                 return
 
             # Парс данных в заданных частотах
@@ -530,7 +530,7 @@ class GuiProgram(Ui_Dialog):
     def saving_data(self):
         # Проверка, что данные для сохранения есть
         if not self.data_signals.frequency_peak or not self.data_signals.gamma_peak:
-            QMessageBox.about(None, "Ошибка данных", "Нет данных для сохранения.")
+            QMessageBox.warning(None, "Ошибка данных", "Нет данных для сохранения.")
             return
 
         # Рек-мое название файла
