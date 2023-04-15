@@ -1,3 +1,4 @@
+#coding: utf-8
 import functools
 
 from data_and_processing import DataAndProcessing
@@ -64,12 +65,12 @@ def frequency_input_check(frequency, field_name):
         frequency = float(frequency)
 
     except ValueError:
-        QMessageBox.about(None, "Ошибка ввода", "Введите число в поле '" + field_name + "'.")
+        QMessageBox.about(None, "Ошибка ввода", f"Введите число в поле {field_name!r}.")
         return False
 
     # Проверка положительности
     if frequency < 0:
-        QMessageBox.about(None, "Ошибка ввода", "Введите положительное число в поле '" + field_name + "'.")
+        QMessageBox.about(None, "Ошибка ввода", f"Введите положительное число в поле {field_name!r}.")
         return False
 
     return True
@@ -266,7 +267,7 @@ class GuiProgram(Ui_Dialog):
         filename = "25empty.csv"
 
         # Если имя файла не получено, сброс
-        if filename == '':
+        if not filename:
             return
 
         # Чтение данных
@@ -292,7 +293,7 @@ class GuiProgram(Ui_Dialog):
 
             # Проверка на правильность границ
             if end_frequency < start_frequency:
-                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения. ")
+                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения.")
                 return
 
             # Парс данных в заданных частотах
@@ -332,7 +333,7 @@ class GuiProgram(Ui_Dialog):
         filename = "25DMSO.csv"
 
         # Если имя файла не получено, сброс
-        if filename == '':
+        if not filename:
             return
 
         # Чтение данных
@@ -358,7 +359,7 @@ class GuiProgram(Ui_Dialog):
 
             # Проверка на правильность границ
             if end_frequency < start_frequency:
-                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения. ")
+                QMessageBox.about(None, "Ошибка ввода", "Частота 'от' больше 'до', в фильтре чтения.")
                 return
 
             # Парс данных в заданных частотах
@@ -517,10 +518,7 @@ class GuiProgram(Ui_Dialog):
                 self.selected_rows -= 1
 
         # Создаем строки статистики
-        text_all_number = "Всего: " + str(self.total_rows)  # Всего элементов
-        percentage_of_selected = self.selected_rows / self.total_rows * 100  # Процент выбранных
-        text_selected = "Выбрано: " + str(self.selected_rows) + " ( " + str('%.2f' % percentage_of_selected) + "% ) "
-        text_statistics = text_all_number + ' ' + text_selected  # Итоговая строка
+        text_statistics = f'Выбрано {self.selected_rows} из {self.total_rows} ( {self.selected_rows / self.total_rows:.2%} )'
 
         # Вывод в label под таблицей
         self.label_statistics_on_selected_frequencies.setText(text_statistics)
@@ -536,9 +534,8 @@ class GuiProgram(Ui_Dialog):
             return
 
         # Рек-мое название файла
-        recommended_file_name = "F" + str(self.data_signals.signal_frequency[0]) + "-" + str(
-            self.data_signals.signal_frequency[
-                len(self.data_signals.signal_frequency) - 1]) + "_threshold-" + self.lineEdit_threshold.text()
+        recommended_file_name = f'F{self.data_signals.signal_frequency[0]}-{self.data_signals.signal_frequency[-1]}' \
+                                f'_threshold-{self.lineEdit_threshold.text()}'
 
         # Окно с выбором места сохранения
         file_name, file_type = QFileDialog.getSaveFileName(
@@ -563,7 +560,7 @@ class GuiProgram(Ui_Dialog):
                 if self.tableWidget_frequency_absorption.cellWidget(i, 2).checkState() == Qt.CheckState.Checked:
                     f = self.tableWidget_frequency_absorption.item(i, 0).text()
                     g = self.tableWidget_frequency_absorption.item(i, 1).text()
-                    file.write(f + "\t" + g + "\n")
+                    file.write(f'{f}\t{g}\n')
 
             # Конец файла
             file.write('''***********************************************************\n''')
