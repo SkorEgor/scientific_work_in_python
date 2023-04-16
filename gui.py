@@ -138,7 +138,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.checkBox_read_filter.setText(_translate("Dialog", "Фильтр на чтение."))
+        self.checkBox_read_filter.setText(_translate("Dialog", "Диапазон чтения"))
         self.label_text_frequency_from.setText(_translate("Dialog", "Частота от "))
         self.lineEdit_filter_frequency_start.setText(_translate("Dialog", "22308"))
         self.label_text_MHz_from.setText(_translate("Dialog", " МГц    "))

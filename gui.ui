@@ -27,7 +27,7 @@
              <item>
               <widget class="QCheckBox" name="checkBox_read_filter">
                <property name="text">
-                <string>Фильтр на чтение.</string>
+                <string>Диапазон чтения</string>
                </property>
               </widget>
              </item>

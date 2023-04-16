@@ -123,12 +123,16 @@ class GuiProgram(Ui_Dialog):
         self.fig1 = None
         self.canvas1 = None
         self.toolbar1 = None
+        self.horizontal_axis_name1 = "Частота МГц"
+        self.vertical_axis_name1 = "Гамма"
 
         # Параметры 2 графика
         self.ax2 = None
         self.fig2 = None
         self.canvas2 = None
         self.toolbar2 = None
+        self.horizontal_axis_name2 = "Частота МГц"
+        self.vertical_axis_name2 = "Отклонение"
 
         # Статистика таблицы
         self.total_rows = 0
@@ -308,8 +312,8 @@ class GuiProgram(Ui_Dialog):
         # Очищаем график
         self.ax1.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax1.set_xlabel('frequency MHz')
-        self.ax1.set_ylabel('gamma')
+        self.ax1.set_xlabel(self.horizontal_axis_name1)
+        self.ax1.set_ylabel(self.vertical_axis_name1)
         self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
         self.ax1.grid()
         # Убеждаемся, что все помещается внутри холста
@@ -394,8 +398,8 @@ class GuiProgram(Ui_Dialog):
         # очищаем график
         self.ax2.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax2.set_xlabel('frequency MHz')
-        self.ax2.set_ylabel('error')
+        self.ax2.set_xlabel(self.horizontal_axis_name2)
+        self.ax2.set_ylabel(self.vertical_axis_name2)
         self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
         self.ax2.grid()
         # Убеждаемся, что все помещается внутри холста
@@ -430,8 +434,8 @@ class GuiProgram(Ui_Dialog):
         # ПЕРЕРИСОВКА 2 ГРАФИКА
         self.ax2.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax2.set_xlabel('frequency MHz')
-        self.ax2.set_ylabel('error')
+        self.ax2.set_xlabel(self.horizontal_axis_name2)
+        self.ax2.set_ylabel(self.vertical_axis_name2)
         self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
 
         # Отрисовка порога
@@ -444,8 +448,8 @@ class GuiProgram(Ui_Dialog):
         # ПЕРЕРИСОВКА 1 ГРАФИКА
         self.ax1.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax1.set_xlabel('frequency MHz')
-        self.ax1.set_ylabel('gamma')
+        self.ax1.set_xlabel(self.horizontal_axis_name1)
+        self.ax1.set_ylabel(self.vertical_axis_name1)
         self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
         self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
         self.ax1.grid()
