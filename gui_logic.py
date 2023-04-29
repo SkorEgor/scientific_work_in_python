@@ -179,12 +179,15 @@ class GuiProgram(Ui_Dialog):
         self.initialize_table()  # Инициализация пустой таблицы с заголовками
         self.pushButton_save_table_to_file.clicked.connect(self.saving_data)  # Сохранить данные из таблицы в файл
         self.tableWidget_frequency_absorption.cellClicked.connect(self.get_clicked_cell)  # Выбрана строка таблицы
+        # Выбран заголовок таблицы
+        self.tableWidget_frequency_absorption.horizontalHeader().sectionClicked.connect(self.click_handler)
 
         # Задаем начало сценария, активные и не активные кнопки
         self.state1_initial()
 
     # Инициализация: Пустая таблица
     def initialize_table(self):
+        self.tableWidget_frequency_absorption.clear()
         self.tableWidget_frequency_absorption.setColumnCount(3)
         self.tableWidget_frequency_absorption.setHorizontalHeaderLabels(["Частота МГц", "Гамма", ""])
         self.tableWidget_frequency_absorption.horizontalHeaderItem(0).setTextAlignment(Qt.AlignHCenter)
@@ -254,6 +257,8 @@ class GuiProgram(Ui_Dialog):
         self.canvas2.draw()
 
         self.tableWidget_frequency_absorption.setRowCount(0)
+
+        self.tableWidget_frequency_absorption.horizontalHeaderItem(2).setIcon(QIcon())
 
     # Сценарий - (3) Загружены оба графика
     def state3_data_loaded(self):
@@ -485,6 +490,7 @@ class GuiProgram(Ui_Dialog):
         # Вывод данных в таблицу
         self.table()
 
+    # РАБОТА С ТАБЛИЦЕЙ
     # Основная программа - (4.1) Заполение таблицы
     def table(self):
         # Задаем кол-во столбцов и строк
@@ -499,8 +505,6 @@ class GuiProgram(Ui_Dialog):
         self.tableWidget_frequency_absorption.horizontalHeaderItem(2).setIcon(
             QIcon('./icons/checkBox_selected.png')
         )
-
-        self.tableWidget_frequency_absorption.horizontalHeader().sectionClicked.connect(self.click_handler)
 
         # Заполняем таблицу
         index = 0
@@ -529,7 +533,7 @@ class GuiProgram(Ui_Dialog):
         self.selected_rows = self.total_rows
         self.frequency_selection()
 
-    # Меняет состояние при клике
+    # Меняет состояние иконки таблицы при клике
     def click_handler(self):
         if self.icon_now == 'selected':
             self.state_check_box_all_rows(False)
