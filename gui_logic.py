@@ -1,5 +1,7 @@
-#coding: utf-8
+# coding: utf-8
 import functools
+
+from PyQt5.QtGui import QIcon
 
 from data_and_processing import DataAndProcessing
 from gui import Ui_Dialog
@@ -138,6 +140,14 @@ class GuiProgram(Ui_Dialog):
         self.total_rows = 0
         self.selected_rows = 0
 
+        # Для иконок
+        self.icon_now = 'selected'
+        self.icon_status = {
+            'empty': QIcon('./icons/checkBox_empty.png'),
+            'mixed': QIcon('./icons/checkBox_mixed.png'),
+            'selected': QIcon('./icons/checkBox_selected.png')
+        }
+
         # ДЕЙСТВИЯ ПРИ ВКЛЮЧЕНИИ
         # Создаем окно
         Ui_Dialog.__init__(self)
@@ -265,9 +275,9 @@ class GuiProgram(Ui_Dialog):
     def plotting_without_noise(self):
         # Вызов окна выбора файла
         # filename, filetype = QFileDialog.getOpenFileName(None,
-        #                                                 "Выбрать файл без шума",
-        #                                                 ".",
-        #                                                "Spectrometer Data(*.csv);;All Files(*)")
+        #                                                  "Выбрать файл без шума",
+        #                                                  ".",
+        #                                                  "Spectrometer Data(*.csv);;All Files(*)")
         filename = "25empty.csv"
 
         # Если имя файла не получено, сброс
@@ -330,9 +340,9 @@ class GuiProgram(Ui_Dialog):
     def signal_plotting(self):
         # Вызов окна выбора файла
         # filename, filetype = QFileDialog.getOpenFileName(None,
-        #                                                 "Выбрать файл сигнала",
-        #                                                 ".",
-        #                                                 "Spectrometer Data(*.csv);;All Files(*)")
+        #                                                  "Выбрать файл сигнала",
+        #                                                  ".",
+        #                                                  "Spectrometer Data(*.csv);;All Files(*)")
 
         filename = "25DMSO.csv"
 
@@ -484,6 +494,14 @@ class GuiProgram(Ui_Dialog):
         # Задаем название столбцов
         self.tableWidget_frequency_absorption.setHorizontalHeaderLabels(["Частота МГц", "Гамма"])
 
+        # Устанавливаем начальное состояние иконки таблицы
+        self.icon_now = 'selected'
+        self.tableWidget_frequency_absorption.horizontalHeaderItem(2).setIcon(
+            QIcon('./icons/checkBox_selected.png')
+        )
+
+        self.tableWidget_frequency_absorption.horizontalHeader().sectionClicked.connect(self.click_handler)
+
         # Заполняем таблицу
         index = 0
         for f, g in zip(self.data_signals.frequency_peak, self.data_signals.gamma_peak):
@@ -511,6 +529,36 @@ class GuiProgram(Ui_Dialog):
         self.selected_rows = self.total_rows
         self.frequency_selection()
 
+    # Меняет состояние при клике
+    def click_handler(self):
+        if self.icon_now == 'selected':
+            self.state_check_box_all_rows(False)
+            self.update_table_icon('empty')
+        else:
+            self.state_check_box_all_rows(True)
+            self.update_table_icon('selected')
+
+    # Установить значение во все checkBox таблицы
+    def state_check_box_all_rows(self, state):
+        if state:
+            state_check_box = Qt.Checked
+        else:
+            state_check_box = Qt.Unchecked
+
+        # Перебираем строки
+        for i in range(self.tableWidget_frequency_absorption.rowCount()):
+            self.tableWidget_frequency_absorption.cellWidget(i, 2).setCheckState(state_check_box)
+
+    # Обновляет иконку в соответствии со статусом
+    def update_table_icon(self, status):
+        # Запоминаем статус для следующего раза
+        self.icon_now = status
+        update_icon = self.icon_status[self.icon_now]   # Получаем новую иконку
+
+        self.tableWidget_frequency_absorption.horizontalHeaderItem(2).setIcon(
+            update_icon  # Вставляем новую иконку
+        )
+
     # Сбор и вывод статистики под таблицей
     def frequency_selection(self, sender=None):
         # Если передали отправителя, проверяем состояние
@@ -522,10 +570,17 @@ class GuiProgram(Ui_Dialog):
                 self.selected_rows -= 1
 
         # Создаем строки статистики
-        text_statistics = f'Выбрано {self.selected_rows} из {self.total_rows} ( {self.selected_rows / self.total_rows:.2%} )'
+        text_statistics \
+            = f'Выбрано {self.selected_rows} из {self.total_rows} ( {self.selected_rows / self.total_rows:.2%} ) '
 
         # Вывод в label под таблицей
         self.label_statistics_on_selected_frequencies.setText(text_statistics)
+
+        # Обновляем статус у checkbox в заголовке
+        if self.selected_rows == self.total_rows:
+            self.update_table_icon('selected')
+        else:
+            self.update_table_icon('mixed')
 
         # Возвращает текст статистики
         return text_statistics

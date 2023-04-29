@@ -127,7 +127,6 @@ class Ui_Dialog(object):
         self.verticalLayout.addWidget(self.pushButton_save_table_to_file)
         self.horizontalLayout_7.addLayout(self.verticalLayout)
         self.horizontalLayout_7.setStretch(0, 2)
-        self.horizontalLayout_7.setStretch(1, 1)
         self.horizontalLayout_6.addLayout(self.horizontalLayout_7)
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
         self.verticalLayout_2.setStretch(0, 1)
