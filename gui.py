@@ -14,7 +14,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
+        Dialog.setWindowModality(QtCore.Qt.WindowModal)
         Dialog.resize(810, 572)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icon/app_icon.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Dialog.setWindowIcon(icon)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
@@ -136,7 +140,8 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Детектирование сигнала - метод Порогового значения"))
+        Dialog.setToolTip(_translate("Dialog", "<html><head/><body><p><img src=\":/icon/app_icon.ico\"/></p></body></html>"))
         self.checkBox_read_filter.setText(_translate("Dialog", "Диапазон чтения"))
         self.label_text_frequency_from.setText(_translate("Dialog", "Частота от "))
         self.lineEdit_filter_frequency_start.setText(_translate("Dialog", "22308"))
@@ -154,3 +159,4 @@ class Ui_Dialog(object):
 " найденных частот в МГц"))
         self.lineEdit_window_width.setText(_translate("Dialog", "4"))
         self.pushButton_save_table_to_file.setText(_translate("Dialog", "Сохранение в файл"))
+import icon
