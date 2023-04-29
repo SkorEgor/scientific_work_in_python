@@ -14,11 +14,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.setWindowModality(QtCore.Qt.WindowModal)
+        Dialog.setWindowModality(QtCore.Qt.NonModal)
         Dialog.resize(810, 572)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icon/app_icon.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/icon_main/app_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Dialog.setWindowIcon(icon)
+        Dialog.setToolTip("")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
@@ -141,7 +142,6 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Детектирование сигнала - метод Порогового значения"))
-        Dialog.setToolTip(_translate("Dialog", "<html><head/><body><p><img src=\":/icon/app_icon.ico\"/></p></body></html>"))
         self.checkBox_read_filter.setText(_translate("Dialog", "Диапазон чтения"))
         self.label_text_frequency_from.setText(_translate("Dialog", "Частота от "))
         self.lineEdit_filter_frequency_start.setText(_translate("Dialog", "22308"))

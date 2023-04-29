@@ -18,10 +18,10 @@
   </property>
   <property name="windowIcon">
    <iconset resource="icons/icon.qrc">
-    <normaloff>:/icon/app_icon.ico</normaloff>:/icon/app_icon.ico</iconset>
+    <normaloff>:/icon_main/app_icon.png</normaloff>:/icon_main/app_icon.png</iconset>
   </property>
   <property name="toolTip">
-   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/icon/app_icon.ico&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1">
    <item>
