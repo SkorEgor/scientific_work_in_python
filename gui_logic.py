@@ -120,6 +120,10 @@ class GuiProgram(Ui_Dialog):
         # Объект данных и обработки их
         self.data_signals = DataAndProcessing()
 
+        # Строки файла
+        self.lines_file_without_gas = None
+        self.lines_file_with_gas = None
+
         # Параметры графика
         self.fig = None
         self.canvas = None
@@ -169,6 +173,8 @@ class GuiProgram(Ui_Dialog):
         self.checkBox_read_filter.toggled.connect(self.filter_state_changed)  # Вкл/Выкл фильтрации чтения
         self.lineEdit_filter_frequency_start.textChanged.connect(self.filter_changed)  # Изменился текст частоты от
         self.lineEdit_filter_frequency_end.textChanged.connect(self.filter_changed)  # Изменился текст частоты до
+        # Выбрать новые данные по фильтру частот
+        self.pushButton_update_filter_frequency.clicked.connect(self.update_data_with_new_frequencies)
 
         # Таблица
         self.initialize_table()  # Инициализация пустой таблицы с заголовками
@@ -219,6 +225,7 @@ class GuiProgram(Ui_Dialog):
     def state1_initial(self):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(False)
+        self.pushButton_update_filter_frequency.setEnabled(False)
         self.pushButton_signal_difference.setEnabled(False)
         self.pushButton_update_threshold.setEnabled(False)
         self.pushButton_save_table_to_file.setEnabled(False)
@@ -227,6 +234,7 @@ class GuiProgram(Ui_Dialog):
     def state2_loaded_empty(self):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(True)
+        self.pushButton_update_filter_frequency.setEnabled(False)
         self.pushButton_signal_difference.setEnabled(False)
         self.pushButton_update_threshold.setEnabled(False)
         self.pushButton_save_table_to_file.setEnabled(False)
@@ -242,6 +250,7 @@ class GuiProgram(Ui_Dialog):
     def state3_data_loaded(self):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(False)
+        self.pushButton_update_filter_frequency.setEnabled(True)
         self.pushButton_signal_difference.setEnabled(True)
         self.pushButton_update_threshold.setEnabled(False)
         self.pushButton_save_table_to_file.setEnabled(False)
@@ -250,26 +259,31 @@ class GuiProgram(Ui_Dialog):
     def state4_difference(self):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(False)
+        self.pushButton_update_filter_frequency.setEnabled(True)
         self.pushButton_signal_difference.setEnabled(True)
         self.pushButton_update_threshold.setEnabled(True)
         self.pushButton_save_table_to_file.setEnabled(True)
 
     # Основная программа - (1) Чтение и построение сигнала без шума
-    def plotting_without_noise(self):
-        # Вызов окна выбора файла
-        # filename, filetype = QFileDialog.getOpenFileName(None,
-        #                                                  "Выбрать файл без шума",
-        #                                                  ".",
-        #                                                  "Spectrometer Data(*.csv);;All Files(*)")
-        filename = "25empty.csv"
+    def plotting_without_noise(self, skip_read=False):
+        if not skip_read:
+            # Вызов окна выбора файла
+            # filename, filetype = QFileDialog.getOpenFileName(None,
+            #                                                  "Выбрать файл без шума",
+            #                                                  ".",
+            #                                                  "Spectrometer Data(*.csv);;All Files(*)")
+            filename = "25empty.csv"
 
-        # Если имя файла не получено, сброс
-        if not filename:
+            # Если имя файла не получено, сброс
+            if not filename:
+                return
+
+            # Чтение данных
+            with open(filename) as f:
+                self.lines_file_without_gas = f.readlines()  # Читаем по строчно, в список
+
+        if not self.lines_file_without_gas:
             return
-
-        # Чтение данных
-        with open(filename) as f:
-            list_line = f.readlines()  # Читаем по строчно, в список
 
         if self.checkBox_read_filter.checkState():
             # Считываем "Частоту от"
@@ -294,14 +308,16 @@ class GuiProgram(Ui_Dialog):
                 return
 
             # Парс данных в заданных частотах
-            parser(list_line,
+            parser(self.lines_file_without_gas,
                    self.data_signals.empty_frequency, self.data_signals.empty_gamma,
                    start_frequency, end_frequency)
         else:
             # Парс данных
-            parser_all_data(list_line,
+            parser_all_data(self.lines_file_without_gas,
                             self.data_signals.empty_frequency, self.data_signals.empty_gamma)
 
+        self.toolbar.home()  # Возвращаем зум
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
         # Очищаем график
         self.ax1.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
@@ -319,22 +335,26 @@ class GuiProgram(Ui_Dialog):
         self.state2_loaded_empty()
 
     # Основная программа - (2) Чтение и построение полезного сигнала
-    def signal_plotting(self):
-        # Вызов окна выбора файла
-        # filename, filetype = QFileDialog.getOpenFileName(None,
-        #                                                  "Выбрать файл сигнала",
-        #                                                  ".",
-        #                                                  "Spectrometer Data(*.csv);;All Files(*)")
+    def signal_plotting(self, skip_read=False):
+        if not skip_read:
+            # Вызов окна выбора файла
+            # filename, filetype = QFileDialog.getOpenFileName(None,
+            #                                                  "Выбрать файл сигнала",
+            #                                                  ".",
+            #                                                  "Spectrometer Data(*.csv);;All Files(*)")
 
-        filename = "25DMSO.csv"
+            filename = "25DMSO.csv"
 
-        # Если имя файла не получено, сброс
-        if not filename:
+            # Если имя файла не получено, сброс
+            if not filename:
+                return
+
+            # Чтение данных
+            with open(filename) as f:
+                self.lines_file_with_gas = f.readlines()  # Читаем по строчно, в список
+
+        if not self.lines_file_with_gas:
             return
-
-        # Чтение данных
-        with open(filename) as f:
-            list_line = f.readlines()  # Читаем по строчно, в список
 
         if self.checkBox_read_filter.checkState():
             # Считываем "Частоту от"
@@ -359,12 +379,12 @@ class GuiProgram(Ui_Dialog):
                 return
 
             # Парс данных в заданных частотах
-            parser(list_line,
+            parser(self.lines_file_with_gas,
                    self.data_signals.signal_frequency, self.data_signals.signal_gamma,
                    start_frequency, end_frequency)
         else:
             # Парс данных
-            parser_all_data(list_line,
+            parser_all_data(self.lines_file_with_gas,
                             self.data_signals.signal_frequency, self.data_signals.signal_gamma)
 
         self.toolbar.home()  # Возвращаем зум
@@ -379,6 +399,12 @@ class GuiProgram(Ui_Dialog):
 
         # Запускаем сценарий: Все данные загружены
         self.state3_data_loaded()
+
+    def update_data_with_new_frequencies(self):
+        if not self.lines_file_without_gas or not self.lines_file_with_gas:
+            return
+        self.plotting_without_noise(True)
+        self.signal_plotting(True)
 
     # Основная программа - (3) Разница пустого и полезного сигнала
     def signal_difference(self):
