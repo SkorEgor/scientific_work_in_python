@@ -29,7 +29,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,0">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1,0,1,0">
+        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,1,0,0">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
@@ -136,11 +136,6 @@
             </widget>
            </item>
           </layout>
-         </item>
-         <item>
-          <widget class="QWidget" name="plotWindow_error_and_threshold" native="true">
-           <layout class="QVBoxLayout" name="plotLayout2"/>
-          </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,0,0,0">

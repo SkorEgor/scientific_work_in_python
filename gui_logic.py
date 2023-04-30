@@ -120,21 +120,18 @@ class GuiProgram(Ui_Dialog):
         # Объект данных и обработки их
         self.data_signals = DataAndProcessing()
 
+        # Параметры графика
+        self.fig = None
+        self.canvas = None
+        self.toolbar = None
         # Параметры 1 графика
         self.ax1 = None
-        self.fig1 = None
-        self.canvas1 = None
-        self.toolbar1 = None
-        self.horizontal_axis_name1 = "Частота МГц"
-        self.vertical_axis_name1 = "Гамма"
-
-        # Параметры 2 графика
-        self.ax2 = None
-        self.fig2 = None
-        self.canvas2 = None
-        self.toolbar2 = None
         self.horizontal_axis_name2 = "Частота МГц"
         self.vertical_axis_name2 = "Отклонение"
+        # Параметры 2 графика
+        self.ax2 = None
+        self.horizontal_axis_name1 = "Частота МГц"
+        self.vertical_axis_name1 = "Гамма"
 
         # Статистика таблицы
         self.total_rows = 0
@@ -155,14 +152,10 @@ class GuiProgram(Ui_Dialog):
         self.setupUi(dialog)
 
         # Инициализируем фигуру в нашем окне
-        figure1 = Figure()  # Готовим пустую фигуру
-        axis1 = figure1.add_subplot(111)  # Пустой участок
-        self.initialize_figure(figure1, axis1)  # Инициализируем!
-
-        # Аналогично для второго графика
-        figure2 = Figure()
-        axis2 = figure2.add_subplot(111)
-        self.initialize_figure2(figure2, axis2)
+        figure = Figure()  # Готовим пустую фигуру
+        self.ax1 = figure.add_subplot(211)  # Пустой участок
+        self.ax2 = figure.add_subplot(212)
+        self.initialize_figure(figure)  # Инициализируем!
 
         # Обработчики нажатий - кнопок порядка работы
         self.pushButton_loading_empty_data.clicked.connect(self.plotting_without_noise)  # Загрузить данные с вакуума
@@ -193,39 +186,22 @@ class GuiProgram(Ui_Dialog):
         self.tableWidget_frequency_absorption.horizontalHeaderItem(0).setTextAlignment(Qt.AlignHCenter)
         self.tableWidget_frequency_absorption.horizontalHeaderItem(1).setTextAlignment(Qt.AlignHCenter)
 
-    # Инициализация: Пустой верхний график
-    def initialize_figure(self, fig, ax):
+        # Инициализация: Пустой верхний график
+
+    def initialize_figure(self, fig):
         # Инициализирует фигуру matplotlib внутри контейнера GUI.
         # Вызываем только один раз при инициализации
 
         # Создание фигуры (self.fig и self.ax)
-        self.fig1 = fig
-        self.ax1 = ax
+        self.fig = fig
         # Создание холста
-        self.canvas1 = FigureCanvas(self.fig1)
-        self.plotLayout.addWidget(self.canvas1)
-        self.canvas1.draw()
+        self.canvas = FigureCanvas(self.fig)
+        self.plotLayout.addWidget(self.canvas)
+        self.canvas.draw()
         # Создание Toolbar
-        self.toolbar1 = NavigationToolbar(self.canvas1, self.plotWindow_empty_and_signal,
-                                          coordinates=True)
-        self.plotLayout.addWidget(self.toolbar1)
-
-    # Инициализация: Пустой нижний график
-    def initialize_figure2(self, fig, ax):
-        # Инициализирует фигуру matplotlib внутри контейнера GUI.
-        # Вызываем только один раз при инициализации
-
-        # Создание фигуры (self.fig и self.ax)
-        self.fig2 = fig
-        self.ax2 = ax
-        # Создание холста
-        self.canvas2 = FigureCanvas(self.fig2)
-        self.plotLayout2.addWidget(self.canvas2)
-        self.canvas2.draw()
-        # Создание Toolbar
-        self.toolbar2 = NavigationToolbar(self.canvas2, self.plotWindow_error_and_threshold,
-                                          coordinates=True)
-        self.plotLayout2.addWidget(self.toolbar2)
+        self.toolbar = NavigationToolbar(self.canvas, self.plotWindow_empty_and_signal,
+                                         coordinates=True)
+        self.plotLayout.addWidget(self.toolbar)
 
     # Сценарий - (*) Изменился диапазон чтения файлов
     def filter_changed(self):
@@ -254,7 +230,7 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_save_table_to_file.setEnabled(False)
 
         self.ax2.clear()
-        self.canvas2.draw()
+        self.canvas.draw()
 
         self.tableWidget_frequency_absorption.setRowCount(0)
 
@@ -332,11 +308,11 @@ class GuiProgram(Ui_Dialog):
         self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
         self.ax1.grid()
         # Убеждаемся, что все помещается внутри холста
-        self.fig1.tight_layout()
+        self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
-        self.canvas1.draw()
-        self.toolbar1.update()  # Очищаем стек осей (от старых x, y lim)
-        self.toolbar1.push_current()  # Сохранить текущий статус zoom как домашний
+        self.canvas.draw()
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
+        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
 
         # Запускаем сценарий: Загружен сигнал без шума
         self.state2_loaded_empty()
@@ -393,9 +369,9 @@ class GuiProgram(Ui_Dialog):
         # Строим данные
         self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
         # Убеждаемся, что все помещается внутри холста
-        self.fig1.tight_layout()
+        self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
-        self.canvas1.draw()
+        self.canvas.draw()
 
         # Запускаем сценарий: Все данные загружены
         self.state3_data_loaded()
@@ -418,9 +394,11 @@ class GuiProgram(Ui_Dialog):
         self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
         self.ax2.grid()
         # Убеждаемся, что все помещается внутри холста
-        self.fig2.tight_layout()
+        self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
-        self.canvas2.draw()
+        self.canvas.draw()
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
+        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
 
         # Запускаем расчет порогового значения, интервалов, отрисовку таблицы
         self.threshold()
@@ -457,8 +435,8 @@ class GuiProgram(Ui_Dialog):
         threshold_signal = [threshold_value] * len(self.data_signals.difference)
         self.ax2.plot(self.data_signals.empty_frequency, threshold_signal, color='r', label='empty')
         self.ax2.grid()
-        self.fig2.tight_layout()
-        self.canvas2.draw()
+        self.fig.tight_layout()
+        self.canvas.draw()
 
         # ПЕРЕРИСОВКА 1 ГРАФИКА
         self.ax1.clear()
@@ -469,9 +447,9 @@ class GuiProgram(Ui_Dialog):
         self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
         self.ax1.grid()
         # Убеждаемся, что все помещается внутри холста
-        self.fig1.tight_layout()
+        self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
-        self.canvas1.draw()
+        self.canvas.draw()
 
         # Вычисление промежутков больше порога
         self.data_signals.range_above_threshold(threshold_value)
@@ -481,8 +459,8 @@ class GuiProgram(Ui_Dialog):
             self.ax1.plot(x, y, color='b', label='signal')
 
         # Построение занесенных диапазонов
-        self.fig1.tight_layout()
-        self.canvas1.draw()
+        self.fig.tight_layout()
+        self.canvas.draw()
 
         # Нахождение пиков
         self.data_signals.search_peaks()
@@ -557,7 +535,7 @@ class GuiProgram(Ui_Dialog):
     def update_table_icon(self, status):
         # Запоминаем статус для следующего раза
         self.icon_now = status
-        update_icon = self.icon_status[self.icon_now]   # Получаем новую иконку
+        update_icon = self.icon_status[self.icon_now]  # Получаем новую иконку
 
         self.tableWidget_frequency_absorption.horizontalHeaderItem(2).setIcon(
             update_icon  # Вставляем новую иконку
@@ -648,4 +626,4 @@ class GuiProgram(Ui_Dialog):
         ])
 
         # Перерисовываем
-        self.canvas1.draw()
+        self.canvas.draw()
