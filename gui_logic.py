@@ -522,7 +522,10 @@ class GuiProgram(Ui_Dialog):
         self.frequency_selection()
 
     # Меняет состояние иконки таблицы при клике
-    def click_handler(self):
+    def click_handler(self, column):
+        if column != 2:
+            return
+
         if self.icon_now == 'selected':
             self.state_check_box_all_rows(False)
             self.update_table_icon('empty')
