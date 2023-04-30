@@ -126,12 +126,14 @@ class GuiProgram(Ui_Dialog):
         self.toolbar = None
         # Параметры 1 графика
         self.ax1 = None
-        self.horizontal_axis_name2 = "Частота МГц"
-        self.vertical_axis_name2 = "Отклонение"
+        self.horizontal_axis_name1 = "Частота [МГц]"
+        self.vertical_axis_name1 = "Гамма"
+        self.title1 = "График №1. Данные с исследуемым веществом и без."
         # Параметры 2 графика
         self.ax2 = None
-        self.horizontal_axis_name1 = "Частота МГц"
-        self.vertical_axis_name1 = "Гамма"
+        self.horizontal_axis_name2 = "Частота [МГц]"
+        self.vertical_axis_name2 = "Отклонение"
+        self.title2 = "График №2. Абсолютная разница между данными."
 
         # Статистика таблицы
         self.total_rows = 0
@@ -305,14 +307,13 @@ class GuiProgram(Ui_Dialog):
         # Строим данные, добавляем название осей, устанавливаем цвета
         self.ax1.set_xlabel(self.horizontal_axis_name1)
         self.ax1.set_ylabel(self.vertical_axis_name1)
+        self.ax1.set_title(self.title1)
         self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
         self.ax1.grid()
         # Убеждаемся, что все помещается внутри холста
         self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
         self.canvas.draw()
-        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
-        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
 
         # Запускаем сценарий: Загружен сигнал без шума
         self.state2_loaded_empty()
@@ -366,12 +367,15 @@ class GuiProgram(Ui_Dialog):
             parser_all_data(list_line,
                             self.data_signals.signal_frequency, self.data_signals.signal_gamma)
 
+        self.toolbar.home()  # Возвращаем зум
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
         # Строим данные
         self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
         # Убеждаемся, что все помещается внутри холста
         self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
         self.canvas.draw()
+        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
 
         # Запускаем сценарий: Все данные загружены
         self.state3_data_loaded()
@@ -386,18 +390,20 @@ class GuiProgram(Ui_Dialog):
         self.data_signals.difference_empty_and_signal()
 
         # Отображаем графики
+        self.toolbar.home()  # Возвращаем зум
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
         # очищаем график
         self.ax2.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
         self.ax2.set_xlabel(self.horizontal_axis_name2)
         self.ax2.set_ylabel(self.vertical_axis_name2)
+        self.ax2.set_title(self.title2)
         self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
         self.ax2.grid()
         # Убеждаемся, что все помещается внутри холста
         self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
         self.canvas.draw()
-        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
         self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
 
         # Запускаем расчет порогового значения, интервалов, отрисовку таблицы
@@ -425,10 +431,13 @@ class GuiProgram(Ui_Dialog):
         threshold_value = max(self.data_signals.difference) * self.data_signals.threshold_percentage / 100.
 
         # ПЕРЕРИСОВКА 2 ГРАФИКА
+        self.toolbar.home()  # Возвращаем зум
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
         self.ax2.clear()
         # Строим данные, добавляем название осей, устанавливаем цвета
         self.ax2.set_xlabel(self.horizontal_axis_name2)
         self.ax2.set_ylabel(self.vertical_axis_name2)
+        self.ax2.set_title(self.title2)
         self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
 
         # Отрисовка порога
@@ -443,6 +452,7 @@ class GuiProgram(Ui_Dialog):
         # Строим данные, добавляем название осей, устанавливаем цвета
         self.ax1.set_xlabel(self.horizontal_axis_name1)
         self.ax1.set_ylabel(self.vertical_axis_name1)
+        self.ax1.set_title(self.title1)
         self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
         self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
         self.ax1.grid()
