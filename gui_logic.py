@@ -136,7 +136,7 @@ class GuiProgram(Ui_Dialog):
         self.ax2 = None
         self.horizontal_axis_name2 = "Частота [МГц]"
         self.vertical_axis_name2 = "Отклонение"
-        self.title2 = "График №2. Абсолютная разница между данными."
+        self.title2 = "График №2. Положительная разница между данными."
 
         # Статистика таблицы
         self.total_rows = 0
@@ -165,8 +165,7 @@ class GuiProgram(Ui_Dialog):
         # Обработчики нажатий - кнопок порядка работы
         self.pushButton_loading_empty_data.clicked.connect(self.plotting_without_noise)  # Загрузить данные с вакуума
         self.pushButton_loading_signal_data.clicked.connect(self.signal_plotting)  # Загрузить данные с газом
-        self.pushButton_signal_difference.clicked.connect(self.signal_difference)  # Найти разницу сигналов
-        self.pushButton_update_threshold.clicked.connect(self.threshold)  # Задать порог, найти интервалы, отобразить
+        self.pushButton_update_threshold.clicked.connect(self.processing)  # Обработка сигнала
 
         # Диапазон на чтение
         self.checkBox_read_filter.toggled.connect(self.filter_state_changed)  # Вкл/Выкл фильтрации чтения
@@ -226,13 +225,13 @@ class GuiProgram(Ui_Dialog):
             return
         self.plotting_without_noise(True)
         self.signal_plotting(True)
+        self.processing()
 
     # Сценарий - (1) Начальное состояние
     def state1_initial(self):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(False)
         self.pushButton_update_filter_frequency.setEnabled(False)
-        self.pushButton_signal_difference.setEnabled(False)
         self.pushButton_update_threshold.setEnabled(False)
         self.pushButton_save_table_to_file.setEnabled(False)
 
@@ -241,7 +240,6 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(True)
         self.pushButton_update_filter_frequency.setEnabled(False)
-        self.pushButton_signal_difference.setEnabled(False)
         self.pushButton_update_threshold.setEnabled(False)
         self.pushButton_save_table_to_file.setEnabled(False)
 
@@ -257,16 +255,14 @@ class GuiProgram(Ui_Dialog):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(False)
         self.pushButton_update_filter_frequency.setEnabled(True)
-        self.pushButton_signal_difference.setEnabled(True)
-        self.pushButton_update_threshold.setEnabled(False)
+        self.pushButton_update_threshold.setEnabled(True)
         self.pushButton_save_table_to_file.setEnabled(False)
 
-    # Сценарий - (4) Есть разница сигналов
-    def state4_difference(self):
+    # Сценарий - (4) Выполнена обработка
+    def state4_completed_processing(self):
         self.pushButton_loading_empty_data.setEnabled(True)
         self.pushButton_loading_signal_data.setEnabled(False)
         self.pushButton_update_filter_frequency.setEnabled(True)
-        self.pushButton_signal_difference.setEnabled(True)
         self.pushButton_update_threshold.setEnabled(True)
         self.pushButton_save_table_to_file.setEnabled(True)
 
@@ -325,6 +321,9 @@ class GuiProgram(Ui_Dialog):
         # Запускаем сценарий: Загружен сигнал без шума
         self.state2_loaded_empty()
 
+        # Очищаем разницу, делая ее не актуальной
+        self.data_signals.data_difference = pd.Series()
+
     # Основная программа - (2) Чтение и построение полезного сигнала
     def signal_plotting(self, skip_read=False):
         if not skip_read:
@@ -381,37 +380,24 @@ class GuiProgram(Ui_Dialog):
         # Запускаем сценарий: Все данные загружены
         self.state3_data_loaded()
 
-    # Основная программа - (3) Разница пустого и полезного сигнала
-    def signal_difference(self):
+    # Основная программа - (3) Расчет разницы, порога, интервалов, частот поглощения, отображение на графиках
+    def processing(self):
         # Данных нет - сброс
         if self.data_signals.data_without_gas.empty and self.data_signals.data_with_gas.empty:
-            return
-
-        # Вычитаем отсчеты сигнала с ошибкой и без
-        self.data_signals.data_difference = self.data_signals.difference_empty_and_signal()
-
-        # Отображаем график отклонений
-        self.updating_deviation_graph()
-
-        # Запускаем расчет порогового значения, интервалов, отрисовку таблицы
-        self.threshold()
-
-        # Запускаем сценарий: Есть разница сигналов
-        self.state4_difference()
-
-    # Основная программа - (4) Расчет порога, интервалов больше порога, частот поглощения, отображение на графиках
-    def threshold(self):
-        # Нет разницы сигналов - сброс
-        if self.data_signals.data_difference.empty:
             return
 
         # Запрос порогового значения
         threshold = self.lineEdit_threshold.text()
 
-        # Проверка ввода
+        # Проверка порога
         if not check_float_and_0to100(threshold, "Пороговое значение"):
             return
         threshold = float(threshold)
+
+        # Если разницы нет, считать новую
+        if self.data_signals.data_difference.empty:
+            # Вычитаем отсчеты сигнала с ошибкой и без
+            self.data_signals.data_difference = self.data_signals.difference_empty_and_signal()
 
         # Значение порога от макс. значения графика ошибки
         self.data_signals.threshold = self.data_signals.data_difference.max() * threshold / 100.
@@ -429,11 +415,14 @@ class GuiProgram(Ui_Dialog):
         # Нахождение пиков
         self.data_signals.search_peaks()
 
-        # # Вывод данных в таблицу
+        # Вывод данных в таблицу
         self.table()
 
+        # Переводим состояние интерфейса
+        self.state4_completed_processing()
+
     # РАБОТА С ТАБЛИЦЕЙ
-    # Основная программа - (4.1) Заполение таблицы
+    # Основная программа - (4) Заполение таблицы
     def table(self):
         # Задаем кол-во столбцов и строк
         self.tableWidget_frequency_absorption.setRowCount(len(self.data_signals.frequency_peak))
