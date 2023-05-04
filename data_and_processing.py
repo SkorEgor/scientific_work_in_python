@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 # Поиск значений поглощения на интервале
 def search_for_peak_on_interval(frequency_list, gamma_list):
     index_max_gamma = 0
@@ -13,24 +16,18 @@ def search_for_peak_on_interval(frequency_list, gamma_list):
 # Методов обработки и получения данных
 class DataAndProcessing:
     def __init__(self):
-        # Диапазон частот из файла
-        self.frequency_range_start = 0
-        self.frequency_range_end = 0
-
         # Без шума
-        self.empty_frequency = []
-        self.empty_gamma = []
+        self.data_without_gas = pd.Series()
 
         # Сигнал
-        self.signal_frequency = []
-        self.signal_gamma = []
+        self.data_with_gas = pd.Series()
 
         # Разница сигналов
-        self.difference = []
+        self.data_difference = pd.Series()
 
         # Список диапазонов пиков
-        self.gamma_range = []
-        self.frequency_range = []
+        self.absorption_line_range = pd.Series()
+        self.absorption_line_ranges = []
 
         # Список пиков
         self.gamma_peak = []
@@ -38,27 +35,20 @@ class DataAndProcessing:
 
         # Порог
         self.frequency_indexes_above_threshold = []
-        self.threshold_percentage = 30
 
     # Считаем разницу пустого и полезного сигнала
     def difference_empty_and_signal(self):
         # Вычитаем отсчеты сигнала с ошибкой и без
-        self.difference.clear()
-        for i in range(0, len(self.empty_gamma)):
-            self.difference.append(
-                # Находим абсолютную разницу сигналов
-                abs(self.empty_gamma[i] - self.signal_gamma[i]))
-
-        return self.difference
+        return (self.data_with_gas - self.data_without_gas).clip(lower=0)
 
     # Находит интервалы индексов, значения которых выше порога
     def calculation_frequency_indexes_above_threshold(self, threshold_value):
         self.frequency_indexes_above_threshold.clear()
         index_interval = []
         last_index = 0
-        for i in range(1, len(self.signal_frequency)):
+        for i in range(1, self.data_difference.size):
             # Если i-тый отсчет оказался больше порога
-            if self.difference[i] >= threshold_value:
+            if self.data_difference[self.data_difference.index[i]] >= threshold_value:
                 # Если индекс идут друг за другом, записываем их в общий промежуток
                 if last_index + 1 == i:
                     index_interval.append(i)
@@ -76,8 +66,7 @@ class DataAndProcessing:
     # Интервалы значений выше порога, по интервалам индексов
     def index_to_val_range(self):
         # Очищаем от старых данных
-        self.gamma_range.clear()
-        self.frequency_range.clear()
+        self.absorption_line_ranges.clear()
 
         # Перебираем интервалы индексов
         for interval_i in self.frequency_indexes_above_threshold:
@@ -85,12 +74,11 @@ class DataAndProcessing:
             y = []
             # Строим интервал значений
             for i in interval_i:
-                x.append(self.signal_frequency[i])
-                y.append(self.signal_gamma[i])
+                x.append(self.data_with_gas.index[i])
+                y.append(self.data_with_gas[self.data_with_gas.index[i]])
 
             # Интервал значений добавляем к общему списку
-            self.gamma_range.append(y)
-            self.frequency_range.append(x)
+            self.absorption_line_ranges.append(pd.Series(y, index=x))
 
     # Находим интервалы значений выше порога
     def range_above_threshold(self, threshold_value):
@@ -106,9 +94,9 @@ class DataAndProcessing:
         gamma_peaks = []
 
         # Перебираем интервалы выше порога
-        for frequency_ranges, gamma_ranges in zip(self.frequency_range, self.gamma_range):
+        for i in self.absorption_line_ranges:
             # Находим значение поглощения
-            f, g = search_for_peak_on_interval(frequency_ranges, gamma_ranges)
+            f, g = search_for_peak_on_interval(list(i.index), list(i.values))
 
             # Записываем в общий список
             frequency_peaks.append(f)

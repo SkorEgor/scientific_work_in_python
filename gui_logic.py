@@ -3,6 +3,8 @@ import functools
 
 from PyQt5.QtGui import QIcon
 
+import pandas as pd
+
 from data_and_processing import DataAndProcessing
 from gui import Ui_Dialog
 
@@ -19,30 +21,14 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 
 
+# ПАРСЕРЫ ДАННЫХ
 # Входной список, парсит по столбцам
-def parser_all_data(string_list, frequency_list, gamma_list):
-    frequency_list.clear()
-    gamma_list.clear()
+def parser_all_data(string_list):
+    frequency_list = list()
+    gamma_list = list()
 
-    skipping_first_line = True
-    for line in string_list:
-        if skipping_first_line:
-            skipping_first_line = False
-            continue
-        if line[0] == "*":
-            break
+    skipping_first_line = True  # Пропускаем первую строку?
 
-        row = line.split()
-        frequency_list.append(float(row[1]))
-        gamma_list.append(float(row[4]))
-
-
-# Входной список, парсит по столбцам, в заданных частотах
-def parser(string_list, frequency_list, gamma_list, start_frequency, end_frequency):
-    frequency_list.clear()
-    gamma_list.clear()
-
-    skipping_first_line = True
     for line in string_list:
         # Пропуск первой строки
         if skipping_first_line:
@@ -53,6 +39,33 @@ def parser(string_list, frequency_list, gamma_list, start_frequency, end_frequen
         if line[0] == "*":
             break
 
+        # Разделяем строку по пробелу в список
+        row = line.split()
+
+        frequency_list.append(float(row[1]))
+        gamma_list.append(float(row[4]))
+
+    return pd.Series(gamma_list, index=frequency_list)
+
+
+# Входной список, парсит по столбцам, в заданных частотах
+def parser(string_list, start_frequency=None, end_frequency=None):
+    frequency_list = list()
+    gamma_list = list()
+
+    skipping_first_line = True  # Пропускаем первую строку?
+
+    for line in string_list:
+        # Пропуск первой строки
+        if skipping_first_line:
+            skipping_first_line = False
+            continue
+
+        # Если звездочки, конец файла
+        if line[0] == "*":
+            break
+
+        # Разделяем строку по пробелу в список
         row = line.split()
 
         # Если частота в диапазоне частот берем
@@ -60,59 +73,45 @@ def parser(string_list, frequency_list, gamma_list, start_frequency, end_frequen
             frequency_list.append(float(row[1]))
             gamma_list.append(float(row[4]))
 
+    return pd.Series(gamma_list, index=frequency_list)
 
-# Проверяет ввод частоты (float, x>=0)
-def frequency_input_check(frequency, field_name):
+
+# ФУНКЦИИ ПРОВЕРКИ ВВЕДЕННЫХ ДАННЫХ
+# Дробное, больше нуля (для частоты)
+def check_float_and_positive(val, field_name):
     try:
-        frequency = float(frequency)
+        val = float(val)
 
     except ValueError:
-        QMessageBox.warning(None, "Ошибка ввода", f"Введите число в поле {field_name!r}.")
+        QMessageBox.warning(None, "Ошибка ввода", f'Введите число в поле "{field_name!r}".')
         return False
 
     # Проверка положительности
-    if frequency < 0:
-        QMessageBox.warning(None, "Ошибка ввода", f"Введите положительное число в поле {field_name!r}.")
+    if val < 0:
+        QMessageBox.warning(None, "Ошибка ввода", f'Введите положительное число в поле "{field_name!r}".')
         return False
 
     return True
 
 
-# Проверяет ввод ширины окна значения частоты (float, x>=0)
-def window_width_input_check(window_width):
+# Дробное, от 0 до 100 (для процентов и ширины окна просмотра)
+def check_float_and_0to100(val, field_name):
     try:
-        window_width = float(window_width)
+        val = float(val)
 
     except ValueError:
-        QMessageBox.warning(None, "Ошибка ввода", "Введите число в поле 'ширина окна просмотра'.")
+        QMessageBox.warning(None, "Ошибка ввода", f'Введите число в поле "{field_name!r}".')
         return False
 
-    # Проверка положительности
-    if window_width < 0:
-        QMessageBox.warning(None, "Ошибка ввода", "Введите положительное число в поле 'ширина окна просмотра'.")
-        return False
-
-    return True
-
-
-# Проверяет ввод процента (float, 0<=x<=100)
-def percentage_check(percentage):
-    try:
-        percentage = float(percentage)
-
-    except ValueError:
-        QMessageBox.warning(None, "Ошибка ввода", "Введите число в поле порога.")
-        return False
-
-    # Проверка
-    if percentage < 0 or percentage > 100:
-        QMessageBox.warning(None, "Ошибка ввода", "Пороговое значение должно быть от 0 до 100.")
+    # Проверка на диапазон
+    if val < 0 or 100 < val:
+        QMessageBox.warning(None, "Ошибка ввода", f'Введите число от 0 до 100 в поле "{field_name!r}".')
         return False
 
     return True
 
 
-# Класс алгоритма работы приложения
+# КЛАСС АЛГОРИТМА ПРИЛОЖЕНИЯ
 class GuiProgram(Ui_Dialog):
 
     def __init__(self, dialog):
@@ -143,7 +142,7 @@ class GuiProgram(Ui_Dialog):
         self.total_rows = 0
         self.selected_rows = 0
 
-        # Для иконок
+        # Иконки checkbox в заголовке таблицы
         self.icon_now = 'selected'
         self.icon_status = {
             'empty': QIcon('./icons/checkBox_empty.png'),
@@ -157,7 +156,7 @@ class GuiProgram(Ui_Dialog):
         # Устанавливаем пользовательский интерфейс
         self.setupUi(dialog)
 
-        # Инициализируем фигуру в нашем окне
+        # Инициализируем фигуру графика в нашем окне
         figure = Figure()  # Готовим пустую фигуру
         self.ax1 = figure.add_subplot(211)  # Пустой участок
         self.ax2 = figure.add_subplot(212)
@@ -200,7 +199,7 @@ class GuiProgram(Ui_Dialog):
         # Инициализирует фигуру matplotlib внутри контейнера GUI.
         # Вызываем только один раз при инициализации
 
-        # Создание фигуры (self.fig и self.ax)
+        # Создание фигуры
         self.fig = fig
         # Создание холста
         self.canvas = FigureCanvas(self.fig)
@@ -220,6 +219,13 @@ class GuiProgram(Ui_Dialog):
         state = self.checkBox_read_filter.checkState()
         self.lineEdit_filter_frequency_start.setEnabled(state)
         self.lineEdit_filter_frequency_end.setEnabled(state)
+
+    # Сценарий - (***) Пере выбор данных по фильтру частот
+    def update_data_with_new_frequencies(self):
+        if not self.lines_file_without_gas or not self.lines_file_with_gas:
+            return
+        self.plotting_without_noise(True)
+        self.signal_plotting(True)
 
     # Сценарий - (1) Начальное состояние
     def state1_initial(self):
@@ -289,7 +295,7 @@ class GuiProgram(Ui_Dialog):
             # Считываем "Частоту от"
             start_frequency = self.lineEdit_filter_frequency_start.text()
             # Проверка
-            if not frequency_input_check(start_frequency, "Частота от"):
+            if not check_float_and_positive(start_frequency, "Частота от"):
                 return
             # Приводим к дробному
             start_frequency = float(start_frequency)
@@ -297,7 +303,7 @@ class GuiProgram(Ui_Dialog):
             # Считываем "Частоту до"
             end_frequency = self.lineEdit_filter_frequency_end.text()
             # Проверка
-            if not frequency_input_check(end_frequency, "Частота до"):
+            if not check_float_and_positive(end_frequency, "Частота до"):
                 return
             # Приводим к дробному
             end_frequency = float(end_frequency)
@@ -308,28 +314,13 @@ class GuiProgram(Ui_Dialog):
                 return
 
             # Парс данных в заданных частотах
-            parser(self.lines_file_without_gas,
-                   self.data_signals.empty_frequency, self.data_signals.empty_gamma,
-                   start_frequency, end_frequency)
+            self.data_signals.data_without_gas = parser(self.lines_file_without_gas, start_frequency, end_frequency)
         else:
             # Парс данных
-            parser_all_data(self.lines_file_without_gas,
-                            self.data_signals.empty_frequency, self.data_signals.empty_gamma)
+            self.data_signals.data_without_gas = parser_all_data(self.lines_file_without_gas)
 
-        self.toolbar.home()  # Возвращаем зум
-        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
-        # Очищаем график
-        self.ax1.clear()
-        # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax1.set_xlabel(self.horizontal_axis_name1)
-        self.ax1.set_ylabel(self.vertical_axis_name1)
-        self.ax1.set_title(self.title1)
-        self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
-        self.ax1.grid()
-        # Убеждаемся, что все помещается внутри холста
-        self.fig.tight_layout()
-        # Показываем новую фигуру в интерфейсе
-        self.canvas.draw()
+        # Отрисовка
+        self.updating_gas_graph()
 
         # Запускаем сценарий: Загружен сигнал без шума
         self.state2_loaded_empty()
@@ -360,7 +351,7 @@ class GuiProgram(Ui_Dialog):
             # Считываем "Частоту от"
             start_frequency = self.lineEdit_filter_frequency_start.text()
             # Проверка
-            if not frequency_input_check(start_frequency, "Частота от"):
+            if not check_float_and_positive(start_frequency, "Частота от"):
                 return
             # Приводим к дробному
             start_frequency = float(start_frequency)
@@ -368,7 +359,7 @@ class GuiProgram(Ui_Dialog):
             # Считываем "Частоту до"
             end_frequency = self.lineEdit_filter_frequency_end.text()
             # Проверка
-            if not frequency_input_check(end_frequency, "Частота до"):
+            if not check_float_and_positive(end_frequency, "Частота до"):
                 return
             # Приводим к дробному
             end_frequency = float(end_frequency)
@@ -379,58 +370,28 @@ class GuiProgram(Ui_Dialog):
                 return
 
             # Парс данных в заданных частотах
-            parser(self.lines_file_with_gas,
-                   self.data_signals.signal_frequency, self.data_signals.signal_gamma,
-                   start_frequency, end_frequency)
+            self.data_signals.data_with_gas = parser(self.lines_file_with_gas, start_frequency, end_frequency)
         else:
             # Парс данных
-            parser_all_data(self.lines_file_with_gas,
-                            self.data_signals.signal_frequency, self.data_signals.signal_gamma)
+            self.data_signals.data_with_gas = parser_all_data(self.lines_file_with_gas)
 
-        self.toolbar.home()  # Возвращаем зум
-        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
-        # Строим данные
-        self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
-        # Убеждаемся, что все помещается внутри холста
-        self.fig.tight_layout()
-        # Показываем новую фигуру в интерфейсе
-        self.canvas.draw()
-        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
+        # Отрисовка
+        self.updating_gas_graph()
 
         # Запускаем сценарий: Все данные загружены
         self.state3_data_loaded()
 
-    def update_data_with_new_frequencies(self):
-        if not self.lines_file_without_gas or not self.lines_file_with_gas:
-            return
-        self.plotting_without_noise(True)
-        self.signal_plotting(True)
-
     # Основная программа - (3) Разница пустого и полезного сигнала
     def signal_difference(self):
-        # Сигналов нет - прекращаем
-        if not self.data_signals.empty_gamma or not self.data_signals.signal_gamma:
+        # Данных нет - сброс
+        if self.data_signals.data_without_gas.empty and self.data_signals.data_with_gas.empty:
             return
 
         # Вычитаем отсчеты сигнала с ошибкой и без
-        self.data_signals.difference_empty_and_signal()
+        self.data_signals.data_difference = self.data_signals.difference_empty_and_signal()
 
-        # Отображаем графики
-        self.toolbar.home()  # Возвращаем зум
-        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
-        # очищаем график
-        self.ax2.clear()
-        # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax2.set_xlabel(self.horizontal_axis_name2)
-        self.ax2.set_ylabel(self.vertical_axis_name2)
-        self.ax2.set_title(self.title2)
-        self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
-        self.ax2.grid()
-        # Убеждаемся, что все помещается внутри холста
-        self.fig.tight_layout()
-        # Показываем новую фигуру в интерфейсе
-        self.canvas.draw()
-        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
+        # Отображаем график отклонений
+        self.updating_deviation_graph()
 
         # Запускаем расчет порогового значения, интервалов, отрисовку таблицы
         self.threshold()
@@ -441,67 +402,34 @@ class GuiProgram(Ui_Dialog):
     # Основная программа - (4) Расчет порога, интервалов больше порога, частот поглощения, отображение на графиках
     def threshold(self):
         # Нет разницы сигналов - сброс
-        if not self.data_signals.difference:
+        if self.data_signals.data_difference.empty:
             return
 
         # Запрос порогового значения
         threshold = self.lineEdit_threshold.text()
 
         # Проверка ввода
-        if not percentage_check(threshold):
+        if not check_float_and_0to100(threshold, "Пороговое значение"):
             return
         threshold = float(threshold)
 
         # Значение порога от макс. значения графика ошибки
-        self.data_signals.threshold_percentage = threshold
-        threshold_value = max(self.data_signals.difference) * self.data_signals.threshold_percentage / 100.
+        self.data_signals.threshold = self.data_signals.data_difference.max() * threshold / 100.
 
-        # ПЕРЕРИСОВКА 2 ГРАФИКА
-        self.toolbar.home()  # Возвращаем зум
-        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
-        self.ax2.clear()
-        # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax2.set_xlabel(self.horizontal_axis_name2)
-        self.ax2.set_ylabel(self.vertical_axis_name2)
-        self.ax2.set_title(self.title2)
-        self.ax2.plot(self.data_signals.empty_frequency, self.data_signals.difference, color='g', label='empty')
+        # Перерисовка графика отклонений
+        threshold_signal = [self.data_signals.threshold] * self.data_signals.data_difference.size
+        self.updating_deviation_graph(threshold_signal)
 
-        # Отрисовка порога
-        threshold_signal = [threshold_value] * len(self.data_signals.difference)
-        self.ax2.plot(self.data_signals.empty_frequency, threshold_signal, color='r', label='empty')
-        self.ax2.grid()
-        self.fig.tight_layout()
-        self.canvas.draw()
+        # Находим промежутки выше порога
+        self.data_signals.range_above_threshold(self.data_signals.threshold)
 
-        # ПЕРЕРИСОВКА 1 ГРАФИКА
-        self.ax1.clear()
-        # Строим данные, добавляем название осей, устанавливаем цвета
-        self.ax1.set_xlabel(self.horizontal_axis_name1)
-        self.ax1.set_ylabel(self.vertical_axis_name1)
-        self.ax1.set_title(self.title1)
-        self.ax1.plot(self.data_signals.empty_frequency, self.data_signals.empty_gamma, color='r', label='empty')
-        self.ax1.plot(self.data_signals.signal_frequency, self.data_signals.signal_gamma, color='g', label='signal')
-        self.ax1.grid()
-        # Убеждаемся, что все помещается внутри холста
-        self.fig.tight_layout()
-        # Показываем новую фигуру в интерфейсе
-        self.canvas.draw()
-
-        # Вычисление промежутков больше порога
-        self.data_signals.range_above_threshold(threshold_value)
-
-        # Выделение промежутков на 1 графике
-        for x, y in zip(self.data_signals.frequency_range, self.data_signals.gamma_range):
-            self.ax1.plot(x, y, color='b', label='signal')
-
-        # Построение занесенных диапазонов
-        self.fig.tight_layout()
-        self.canvas.draw()
+        # Перерисовка графика газа
+        self.updating_gas_graph(self.data_signals.absorption_line_ranges)
 
         # Нахождение пиков
         self.data_signals.search_peaks()
 
-        # Вывод данных в таблицу
+        # # Вывод данных в таблицу
         self.table()
 
     # РАБОТА С ТАБЛИЦЕЙ
@@ -547,7 +475,98 @@ class GuiProgram(Ui_Dialog):
         self.selected_rows = self.total_rows
         self.frequency_selection()
 
-    # Меняет состояние иконки таблицы при клике
+    # Выбран Сбор check box таблицы, обновляем статистику под таблицей
+    def frequency_selection(self, sender=None):
+        # Если передали отправителя, проверяем состояние
+        if sender is not None:
+            # Если новое состояние - нажатое, то прибавляем к числу выбранных
+            if sender.checkState() == Qt.CheckState.Checked:
+                self.selected_rows += 1
+            else:
+                self.selected_rows -= 1
+
+        # Создаем строки статистики
+        text_statistics \
+            = f'Выбрано {self.selected_rows} из {self.total_rows} ( {self.selected_rows / self.total_rows:.2%} ) '
+
+        # Вывод в label под таблицей
+        self.label_statistics_on_selected_frequencies.setText(text_statistics)
+
+        # Обновляем статус у checkbox в заголовке
+        if self.selected_rows == self.total_rows:
+            self.update_table_icon('selected')
+        elif self.selected_rows == 0:
+            self.update_table_icon('empty')
+        else:
+            self.update_table_icon('mixed')
+
+        # Возвращает текст статистики
+        return text_statistics
+
+    # Выбрана строка таблицы
+    def get_clicked_cell(self, row):
+        # Запрашиваем из окна, значение порога
+        window_width = self.lineEdit_window_width.text()
+
+        # Проверка на цифры и положительность
+        if not check_float_and_positive(window_width, "Ширина окна просмотра"):
+            return
+
+        window_width = float(window_width)
+
+        frequency_left_or_right = window_width / 2
+        # Приближаем область с выделенной частотой
+        self.ax1.set_xlim([
+            self.data_signals.frequency_peak[row] - frequency_left_or_right,
+            self.data_signals.frequency_peak[row] + frequency_left_or_right
+        ])
+
+        # Перерисовываем
+        self.canvas.draw()
+
+    # Кнопка сохранения таблицы
+    def saving_data(self):
+        # Проверка, что данные для сохранения есть
+        if not self.data_signals.frequency_peak or not self.data_signals.gamma_peak:
+            QMessageBox.warning(None, "Ошибка данных", "Нет данных для сохранения.")
+            return
+
+        # Рек-мое название файла
+        recommended_file_name = f'F{self.data_signals.data_without_gas.index[0]}-' \
+                                f'{self.data_signals.data_without_gas.index[-1]}' \
+                                f'_threshold-{self.lineEdit_threshold.text()}'
+
+        # Окно с выбором места сохранения
+        file_name, file_type = QFileDialog.getSaveFileName(
+            None,
+            'Сохранение',
+            recommended_file_name,
+            "Text(*.txt);;Spectrometer Data(*.csv);;All Files(*)"
+        )
+
+        # Если имя не получено, прервать
+        if not file_name:
+            return
+
+        # Открываем файл для чтения
+        with open(file_name, "w") as file:
+
+            # Заголовок/Название столбцов
+            file.write("FREQUENCY:\tGAMMA:\n")
+
+            # Перебираем по парно частоты и гаммы пиков; Записываем по строчно в файл
+            for i in range(self.tableWidget_frequency_absorption.rowCount()):
+                if self.tableWidget_frequency_absorption.cellWidget(i, 2).checkState() == Qt.CheckState.Checked:
+                    f = self.tableWidget_frequency_absorption.item(i, 0).text()
+                    g = self.tableWidget_frequency_absorption.item(i, 1).text()
+                    file.write(f'{f}\t{g}\n')
+
+            # Конец файла
+            file.write('''***********************************************************\n''')
+            file.write(self.frequency_selection())
+
+    # ИКОНКА ЗАГОЛОВКА ТАБЛИЦЫ
+    # Нажатие по заголовку и изменение состояния check box заголовка
     def click_handler(self, column):
         if column != 2:
             return
@@ -580,89 +599,76 @@ class GuiProgram(Ui_Dialog):
             update_icon  # Вставляем новую иконку
         )
 
-    # Сбор и вывод статистики под таблицей
-    def frequency_selection(self, sender=None):
-        # Если передали отправителя, проверяем состояние
-        if sender is not None:
-            # Если новое состояние - нажатое, то прибавляем к числу выбранных
-            if sender.checkState() == Qt.CheckState.Checked:
-                self.selected_rows += 1
-            else:
-                self.selected_rows -= 1
-
-        # Создаем строки статистики
-        text_statistics \
-            = f'Выбрано {self.selected_rows} из {self.total_rows} ( {self.selected_rows / self.total_rows:.2%} ) '
-
-        # Вывод в label под таблицей
-        self.label_statistics_on_selected_frequencies.setText(text_statistics)
-
-        # Обновляем статус у checkbox в заголовке
-        if self.selected_rows == self.total_rows:
-            self.update_table_icon('selected')
-        else:
-            self.update_table_icon('mixed')
-
-        # Возвращает текст статистики
-        return text_statistics
-
-    # Кнопка сохранения таблицы
-    def saving_data(self):
-        # Проверка, что данные для сохранения есть
-        if not self.data_signals.frequency_peak or not self.data_signals.gamma_peak:
-            QMessageBox.warning(None, "Ошибка данных", "Нет данных для сохранения.")
+    # ОБНОВЛЕНИЕ ГРАФИКОВ
+    # График газов
+    def updating_gas_graph(self, list_absorbing=None):
+        # Данных нет - сброс
+        if self.data_signals.data_without_gas.empty and self.data_signals.data_with_gas.empty and list_absorbing:
             return
 
-        # Рек-мое название файла
-        recommended_file_name = f'F{self.data_signals.signal_frequency[0]}-{self.data_signals.signal_frequency[-1]}' \
-                                f'_threshold-{self.lineEdit_threshold.text()}'
-
-        # Окно с выбором места сохранения
-        file_name, file_type = QFileDialog.getSaveFileName(
-            None,
-            'Сохранение',
-            recommended_file_name,
-            "Text(*.txt);;Spectrometer Data(*.csv);;All Files(*)"
-        )
-
-        # Если имя не получено, прервать
-        if not file_name:
-            return
-
-        # Открываем файл для чтения
-        with open(file_name, "w") as file:
-
-            # Заголовок/Название столбцов
-            file.write("FREQUENCY:\tGAMMA:\n")
-
-            # Перебираем по парно частоты и гаммы пиков; Записываем по строчно в файл
-            for i in range(self.tableWidget_frequency_absorption.rowCount()):
-                if self.tableWidget_frequency_absorption.cellWidget(i, 2).checkState() == Qt.CheckState.Checked:
-                    f = self.tableWidget_frequency_absorption.item(i, 0).text()
-                    g = self.tableWidget_frequency_absorption.item(i, 1).text()
-                    file.write(f'{f}\t{g}\n')
-
-            # Конец файла
-            file.write('''***********************************************************\n''')
-            file.write(self.frequency_selection())
-
-    # Выбрана строка таблицы
-    def get_clicked_cell(self, row):
-        # Запрашиваем из окна, значение порога
-        window_width = self.lineEdit_window_width.text()
-
-        # Проверка на цифры и положительность
-        if not window_width_input_check(window_width):
-            return
-
-        window_width = float(window_width)
-
-        frequency_left_or_right = window_width / 2
-        # Приближаем область с выделенной частотой
-        self.ax1.set_xlim([
-            self.data_signals.frequency_peak[row] - frequency_left_or_right,
-            self.data_signals.frequency_peak[row] + frequency_left_or_right
-        ])
-
-        # Перерисовываем
+        # Отрисовка
+        self.toolbar.home()  # Возвращаем зум
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
+        # Очищаем график
+        self.ax1.clear()
+        # Название осей и графика
+        self.ax1.set_xlabel(self.horizontal_axis_name1)
+        self.ax1.set_ylabel(self.vertical_axis_name1)
+        self.ax1.set_title(self.title1)
+        # Если есть данные без газа, строим график
+        if not self.data_signals.data_without_gas.empty:
+            self.ax1.plot(
+                self.data_signals.data_without_gas.index,
+                self.data_signals.data_without_gas.values,
+                color='r', label='empty')
+        # Если есть данные с газом, строим график
+        if not self.data_signals.data_with_gas.empty:
+            self.ax1.plot(
+                self.data_signals.data_with_gas.index,
+                self.data_signals.data_with_gas.values,
+                color='g', label='gas')
+        # Выделение промежутков
+        if list_absorbing:
+            for i in list_absorbing:
+                self.ax1.plot(i.index, i.values, color='b', label='signal')
+        # Рисуем сетку
+        self.ax1.grid()
+        # Убеждаемся, что все помещается внутри холста
+        self.fig.tight_layout()
+        # Показываем новую фигуру в интерфейсе
         self.canvas.draw()
+
+    # График отклонений
+    def updating_deviation_graph(self, threshold=None):
+        # Данных нет - сброс
+        if self.data_signals.data_difference.empty and not threshold:
+            return
+
+        # Отрисовка
+        self.toolbar.home()  # Возвращаем зум
+        self.toolbar.update()  # Очищаем стек осей (от старых x, y lim)
+        # Очищаем график
+        self.ax2.clear()
+        # Название осей и графика
+        self.ax2.set_xlabel(self.horizontal_axis_name2)
+        self.ax2.set_ylabel(self.vertical_axis_name2)
+        self.ax2.set_title(self.title2)
+        # Если есть данные отклонения, строим график
+        if not self.data_signals.data_difference.empty:
+            self.ax2.plot(
+                self.data_signals.data_difference.index,
+                self.data_signals.data_difference.values,
+                color='g', label='empty')
+        # Если есть порог, строим график
+        if threshold:
+            self.ax2.plot(
+                self.data_signals.data_difference.index,
+                threshold,
+                color='r', label='empty')
+        # Рисуем сетку
+        self.ax2.grid()
+        # Убеждаемся, что все помещается внутри холста
+        self.fig.tight_layout()
+        # Показываем новую фигуру в интерфейсе
+        self.canvas.draw()
+        self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
