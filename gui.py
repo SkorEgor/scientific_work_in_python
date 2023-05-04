@@ -148,6 +148,6 @@ class Ui_Dialog(object):
         self.pushButton_update_threshold.setText(_translate("Dialog", "Обработка"))
         self.label_text_window_width.setText(_translate("Dialog", "Ширина окна просмотра \n"
 " найденных частот в МГц"))
-        self.lineEdit_window_width.setText(_translate("Dialog", "4"))
+        self.lineEdit_window_width.setText(_translate("Dialog", "10"))
         self.pushButton_save_table_to_file.setText(_translate("Dialog", "Сохранение в файл"))
 import icon

@@ -464,7 +464,7 @@ class GuiProgram(Ui_Dialog):
         self.selected_rows = self.total_rows
         self.frequency_selection()
 
-    # Выбран Сбор check box таблицы, обновляем статистику под таблицей
+    # Выбран check box таблицы, обновляем статистику под таблицей
     def frequency_selection(self, sender=None):
         # Если передали отправителя, проверяем состояние
         if sender is not None:
@@ -505,9 +505,14 @@ class GuiProgram(Ui_Dialog):
 
         frequency_left_or_right = window_width / 2
         # Приближаем область с выделенной частотой
-        self.ax1.set_xlim([
-            self.data_signals.frequency_peak[row] - frequency_left_or_right,
-            self.data_signals.frequency_peak[row] + frequency_left_or_right
+        frequency_start = self.data_signals.frequency_peak[row] - frequency_left_or_right
+        frequency_end = self.data_signals.frequency_peak[row] + frequency_left_or_right
+
+        self.ax1.set_xlim([frequency_start, frequency_end])
+
+        self.ax1.set_ylim([
+            self.data_signals.data_with_gas[frequency_start:frequency_end].min(),
+            self.data_signals.gamma_peak[row] * 1.2
         ])
 
         # Перерисовываем
