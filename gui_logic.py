@@ -18,7 +18,7 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 import matplotlib
 
-matplotlib.use("Qt5Agg")
+matplotlib.use('TkAgg')
 
 
 # ПАРСЕРЫ ДАННЫХ
