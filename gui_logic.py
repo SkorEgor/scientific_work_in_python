@@ -129,14 +129,22 @@ class GuiProgram(Ui_Dialog):
         self.toolbar = None
         # Параметры 1 графика
         self.ax1 = None
+        self.title1 = "График №1. Данные с исследуемым веществом и без."
         self.horizontal_axis_name1 = "Частота [МГц]"
         self.vertical_axis_name1 = "Гамма"
-        self.title1 = "График №1. Данные с исследуемым веществом и без."
+        self.name_without_gas = "Без вещества"
+        self.name_with_gas = "C веществом"
+        self.list_absorbing = "Участок с линией поглощения"
         # Параметры 2 графика
         self.ax2 = None
+        self.title2 = "График №2. Положительная разница между данными."
         self.horizontal_axis_name2 = "Частота [МГц]"
         self.vertical_axis_name2 = "Отклонение"
-        self.title2 = "График №2. Положительная разница между данными."
+        self.name_difference = "Разница"
+        self.list_threshold = "Порог"
+        # Кеширование графика
+        self.graph_cache_ax1 = None
+        self.graph_cache_ax2 = None
 
         # Статистика таблицы
         self.total_rows = 0
@@ -599,6 +607,9 @@ class GuiProgram(Ui_Dialog):
         # Данных нет - сброс
         if self.data_signals.data_without_gas.empty and self.data_signals.data_with_gas.empty and list_absorbing:
             return
+        # Если есть 2 график в буфере, подгружаем
+        if self.graph_cache_ax2:
+            self.canvas.restore_region(self.graph_cache_ax2)
 
         # Отрисовка
         self.toolbar.home()  # Возвращаем зум
@@ -614,29 +625,41 @@ class GuiProgram(Ui_Dialog):
             self.ax1.plot(
                 self.data_signals.data_without_gas.index,
                 self.data_signals.data_without_gas.values,
-                color='r', label='empty')
+                color='r', label=self.name_without_gas)
         # Если есть данные с газом, строим график
         if not self.data_signals.data_with_gas.empty:
             self.ax1.plot(
                 self.data_signals.data_with_gas.index,
                 self.data_signals.data_with_gas.values,
-                color='g', label='gas')
+                color='g', label=self.name_with_gas)
         # Выделение промежутков
         if list_absorbing:
+
+            self.ax1.plot(
+                list_absorbing[0].index, list_absorbing[0].values,
+                color='b', label=self.list_absorbing
+            )
+
             for i in list_absorbing:
-                self.ax1.plot(i.index, i.values, color='b', label='signal')
+                self.ax1.plot(i.index, i.values, color='b')
         # Рисуем сетку
         self.ax1.grid()
+        # Инициирует отображение названия графика и различных надписей на нем.
+        self.ax1.legend()
         # Убеждаемся, что все помещается внутри холста
         self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
         self.canvas.draw()
+        self.graph_cache_ax1 = self.canvas.copy_from_bbox(self.ax1.bbox)
 
     # График отклонений
     def updating_deviation_graph(self, threshold=None):
         # Данных нет - сброс
         if self.data_signals.data_difference.empty and not threshold:
             return
+        # Если есть 1 график в буфере, подгружаем
+        if self.graph_cache_ax1:
+            self.canvas.restore_region(self.graph_cache_ax1)
 
         # Отрисовка
         self.toolbar.home()  # Возвращаем зум
@@ -652,17 +675,20 @@ class GuiProgram(Ui_Dialog):
             self.ax2.plot(
                 self.data_signals.data_difference.index,
                 self.data_signals.data_difference.values,
-                color='g', label='empty')
+                color='g', label= self.name_difference)
         # Если есть порог, строим график
         if threshold:
             self.ax2.plot(
                 self.data_signals.data_difference.index,
                 threshold,
-                color='r', label='empty')
+                color='r', label=self.list_threshold)
         # Рисуем сетку
         self.ax2.grid()
+        # Инициирует отображение названия графика и различных надписей на нем.
+        self.ax2.legend()
         # Убеждаемся, что все помещается внутри холста
         self.fig.tight_layout()
         # Показываем новую фигуру в интерфейсе
         self.canvas.draw()
         self.toolbar.push_current()  # Сохранить текущий статус zoom как домашний
+        self.graph_cache_ax2 = self.canvas.copy_from_bbox(self.ax2.bbox)    # Сохраняем в буфер
